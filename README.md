@@ -1,0 +1,2 @@
+# GamsStructure.jl
+ 
