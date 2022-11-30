@@ -87,11 +87,19 @@ function load_sets!(sets,set_names,base_path)
     return merge(sets,s)
 end
 
-function csv_parameter(base_path::String,parm_name::Symbol,columns,sets)
+
+
+function GamsParameter(base_path::String,parm_name::Symbol,columns::Vector,sets;description = "")
+
+    return GamsParameter(base_path,parm_name,columns[1],sets,description = columns[2])
+
+end
+
+function GamsParameter(base_path::String,parm_name::Symbol,columns,sets;description = "")
 
     df = CSV.File("$base_path/$parm_name.csv",stringtype=String,silencewarnings=true)
     s = [sets[c] for c in columns]
-    out = GamsParameter(s)
+    out = GamsParameter(s,description = description)
     #DenseAxisArray(zeros(length.(s)...),s...)
 
     for row in df
@@ -104,7 +112,7 @@ end
 function load_parameters(parameters_to_load,base_path,sets)
     np = Dict()
     for (parm,cols) in pairs(parameters_to_load)
-        np[parm] =  csv_parameter(base_path,parm,cols,sets) 
+        np[parm] =  GamsParameter(base_path,parm,cols,sets) 
     end
     return np
 end
@@ -115,16 +123,21 @@ function load_parameters!(parameters, parameters_to_load,base_path,sets)
     return parms
 end
 
-function empty_parameter(columns,sets; description = "",initial_value = zeros)
+
+function GamsParameter(columns::Vector,sets;initial_value = zeros)
+    sets = [sets[c] for c in columns[1]]
+    return GamsParameter(sets,description = columns[2])
+end
+
+function GamsParameter(columns,sets; description = "",initial_value = zeros)
     sets = [sets[c] for c in columns]
-    return GamsParameter(sets)
-    #out = DenseAxisArray(initial_value(length.(sets)...),sets...)
+    return GamsParameter(sets,description = description)
 end
 
 function empty_parameters(parameters_to_load,sets)
     np = Dict()
     for (parm,cols) in pairs(parameters_to_load)
-        np[parm] = empty_parameter(cols,sets)
+        np[parm] = GamsParameter(cols,sets)
     end
     return np
 end
