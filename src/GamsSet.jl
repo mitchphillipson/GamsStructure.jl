@@ -7,13 +7,17 @@ mutable struct GamsElement
     name::Union{Symbol,Tuple}
     description::String
     active::Bool
-    GamsElement(x::Tuple,y,active=true) = new(Tuple(Symbol(e) for e in x),String(y),active)
-    GamsElement(x,y,active=true) = new(Symbol(x),String(y),active)
+    GamsElement(x::Tuple,y="",active=true) = new(Tuple(Symbol(e) for e in x),String(y),active)
+    GamsElement(x,y="",active=true) = new(Symbol(x),String(y),active)
 end
 
 
 function Base.show(io::IO,x::GamsElement)
-    print("$(x.name) \t \"$(x.description)\"")
+    if x.description != ""
+        print("$(x.name) \t \"$(x.description)\"")
+    else
+        print("$(x.name)")
+    end
 end
 
 """
@@ -43,6 +47,14 @@ function Base.show(io::IO, x::GamsSet)
     end
 end
 
+function Base.in(x::Symbol,r::GamsSet)
+    return x in [e for e in r]
+end
+
+function Base.in(x::GamsElement,r::GamsSet)
+    return x.name in r
+end
+
 
 function Base.getindex(X::GamsSet,i)
     for elm in X.elements
@@ -52,6 +64,12 @@ function Base.getindex(X::GamsSet,i)
     end
     error("$i is not a member of this set")
 end
+
+function Base.getindex(X::GamsSet,i::GamsSet)
+
+    return GamsSet([e for e in X.elements if e in i])
+end
+
 
 
 function Base.setindex!(X::GamsSet,active::Bool,i)
@@ -64,3 +82,24 @@ end
 
 
 
+macro GamsSet(x)
+    if !(isa(x,Expr)) && x.head == :block
+        error("Problem")
+    end
+
+    #code = Expr(:tuple)
+    args = []
+    for it in x.args
+        if isa(it, LineNumberNode)
+            lastline = it
+        else#if isexpr(it, :tuple)
+            append!(args,Tuple(it.args))
+        end
+    end
+
+    :($GamsSet($args))
+
+    #pu
+
+
+end
