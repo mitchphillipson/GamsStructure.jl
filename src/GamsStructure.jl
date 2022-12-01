@@ -4,15 +4,15 @@ module GamsStructure
 
 using JuMP.Containers
 using CSV
+using MacroTools
 
 
-export GamsElement, GamsSet, GamsParameter, @GamsSet, csv_set, load_sets,load_sets!,
-        csv_parameter, load_parameters, load_parameters!,empty_parameter, empty_parameters,
-        empty_parameters!
+export GamsElement, GamsSet, GamsParameter, @GamsSets,
+        @GamsParameters,@GamsDomainSets,GamsDomainSet
 
 
 include("GamsSet.jl")
 include("GamsParameter.jl")
-include("csv_load.jl")
+
 
 end # module GamsStructure
