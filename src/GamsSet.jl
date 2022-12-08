@@ -99,10 +99,11 @@ function GamsSet(base_path::String,set_info::Vector)
 end
 
 
+_active_elements(S::GamsSet) = [e for e in S.elements if e.active]
 
 
+Base.iterate(S::GamsSet,state = 1) = state> length(S) ? nothing : (_active_elements(S)[state].name,state+1)
 
-Base.iterate(S::GamsSet,state = 1) = state> length(S.elements) ? nothing : (S.elements[state].name,state+1)
 
 
 function Base.show(io::IO, x::GamsSet)
@@ -144,7 +145,7 @@ function Base.setindex!(X::GamsSet,active::Bool,i)
 end
 
 function Base.length(X::GamsSet)
-    return length(X.elements)
+    return length(_active_elements(X))
 end
 
 
