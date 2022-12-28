@@ -6,15 +6,13 @@ using GLPK
 
 GU = GamsUniverse()
 
-#sets = Dict{Symbol,GamsSet}()
+
 @GamsSets(GU,"Examples/ex01_data",begin
 :i, "Canning plants", false
 :j, "Markets"
 end)
 
 
-
-#parms = Dict{Symbol,GamsParameter}()
 @GamsParameters(GU,"Examples/ex01_data",begin
 :a, (:i,), "Capacity of plant i in cases"
 :b, (:j,), "Demand at market j in cases"
@@ -25,13 +23,28 @@ end)
 :c, (:i,:j), "transport cost in thousands of dollars per case"
 end)
 
+@GamsScalars(GU,begin
+    :f, 90, "freight in dollars per case per thousand miles"
+end)
 
-f = 90 #freight in dollars per case per thousand miles"
 
+"""
+In this block, we use the code
+
+f = scalar(GU[:f])
+
+as an example of extracting a scalar value. This isn't necessary in 
+this code, it works to use GU[:f] in place of f in the following line.
+
+However, if used in a JuMP model, extracting this information is necessary
+as JuMP doesn't recognize the datatype and will throw and error.
+"""
 begin
-    #sets = GU.sets
     local i = GU[:i]
     local j = GU[:j]
+
+    local f = scalar(GU[:f])
+
     GU[:c][i,j] = f*GU[:d][i,j]/1000
 end
 
