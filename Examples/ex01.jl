@@ -3,21 +3,25 @@ using JuMP
 using Complementarity
 using GLPK
 
-sets = Dict()
-@GamsSets(sets,"Examples/ex01_data",begin
+
+GU = GamsUniverse()
+
+#sets = Dict{Symbol,GamsSet}()
+@GamsSets(GU,"Examples/ex01_data",begin
 :i, "Canning plants", false
 :j, "Markets"
 end)
 
 
-parms = Dict()
-@GamsParameters(parms,sets,"Examples/ex01_data",begin
-:a, (:i,), "Capacity of platn i in cases"
+
+#parms = Dict{Symbol,GamsParameter}()
+@GamsParameters(GU,"Examples/ex01_data",begin
+:a, (:i,), "Capacity of plant i in cases"
 :b, (:j,), "Demand at market j in cases"
 :d, (:i,:j), "distance in thousands of miles"
 end)
 
-@GamsParameters(parms,sets,begin
+@GamsParameters(GU,begin
 :c, (:i,:j), "transport cost in thousands of dollars per case"
 end)
 
@@ -25,17 +29,19 @@ end)
 f = 90 #freight in dollars per case per thousand miles"
 
 begin
-    local i = sets[:i]
-    local j = sets[:j]
-    parms[:c][i,j] = f*parms[:d][i,j]/1000
+    #sets = GU.sets
+    local i = GU[:i]
+    local j = GU[:j]
+    GU[:c][i,j] = f*GU[:d][i,j]/1000
 end
 
-function transport_model(sets,parms)
-    i = sets[:i]
-    j = sets[:j]
-    c = parms[:c]
-    a = parms[:a]
-    b = parms[:b]
+function transport_model(GU)
+    i = GU[:i]
+    j = GU[:j]
+    
+    c = GU[:c]
+    a = GU[:a]
+    b = GU[:b]
 
     m = Model(GLPK.Optimizer)
 
@@ -50,12 +56,13 @@ function transport_model(sets,parms)
 end
 
 
-function transport_model_mcp(sets,parms)
-    i = sets[:i]
-    j = sets[:j]
-    c = parms[:c]
-    a = parms[:a]
-    b = parms[:b]
+function transport_model_mcp(GU)
+    i = GU[:i]
+    j = GU[:j]
+
+    c = GU[:c]
+    a = GU[:a]
+    b = GU[:b]
 
     m = MCPModel()
 
@@ -78,11 +85,11 @@ function transport_model_mcp(sets,parms)
 end
 
 
-m = transport_model(sets,parms)
+m = transport_model(GU)
 optimize!(m)
 value.(m[:x])
 
-model = transport_model_mcp(sets,parms)
+model = transport_model_mcp(GU)
 solveMCP(model)
 
 

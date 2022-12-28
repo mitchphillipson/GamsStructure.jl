@@ -1,41 +1,8 @@
-"""
-    GamsElement(Name, Description, active = true)
 
-A base struct for GamsSets. Each Name will be converted to a symbol. 
-"""
-mutable struct GamsElement
-    name::Union{Symbol,Tuple}
-    description::String
-    active::Bool
-    GamsElement(x::Tuple,y="",active=true) = new(Tuple(Symbol(e) for e in x),String(y),active)
-    GamsElement(x,y="",active=true) = new(Symbol(x),String(y),active)
-end
-
-
-function Base.show(io::IO,x::GamsElement)
-    if x.description != ""
-        print("$(x.name) \t \"$(x.description)\"")
-    else
-        print("$(x.name)")
-    end
-end
-
-"""
-    GamsSet(Elements::Vector{GamsElement}, description = "")
-
-Container to hold GamsElements. 
-"""
-struct GamsSet
-    elements::Vector{GamsElement}
-    description::String
-    GamsSet(e,d = "") = new(e,d)
-end
 
 function GamsSet(x::Tuple...;description = "")
     return GamsSet([GamsElement(a,b) for (a,b) in x],description)
 end
-
-
 
 """
     GamsSet(base_path::String,set_name::Symbol;description = "",csv_description = true))
@@ -150,8 +117,8 @@ end
 
 
 
-macro GamsSets(sets,base_path,block)
-    sets = esc(sets)
+macro GamsSets(GU,base_path,block)
+    GU = esc(GU)
     base_path = esc(base_path)
     if !(isa(block,Expr) && block.head == :block)
         error("Problem")
@@ -168,20 +135,20 @@ macro GamsSets(sets,base_path,block)
             if length(it.args)>=3
                 csv_desc = it.args[3]
             end
-            push!(code.args,:($sets[$set_name] = GamsSet(
+            push!(code.args,:($add_set($GU,$set_name, GamsSet(
                                 $base_path,
                                 $set_name,
                                 description = $desc,
                                 csv_description = $csv_desc)
-                            )
+                            ))
             )
         end
     end
     return code
 end
 
-macro GamsDomainSets(sets,base_path,block)
-    sets = esc(sets)
+macro GamsDomainSets(GU,base_path,block)
+    GU = esc(GU)
     base_path = esc(base_path)
     if !(isa(block,Expr) && block.head == :block)
         error("Problem")
@@ -196,12 +163,12 @@ macro GamsDomainSets(sets,base_path,block)
             if length(it.args)>=4
                 desc = it.args[4]
             end
-            push!(code.args,:($sets[$var] =  GamsDomainSet(
+            push!(code.args,:($add_set($GU,$var,  GamsDomainSet(
                                     $base_path,
                                     $parm,
                                     $col,
                                     description = $desc    
-            )))
+            ))))
         end
     end
     return code

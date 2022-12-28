@@ -1,26 +1,15 @@
-struct GamsParameter
-    sets::Vector{GamsSet}
-    value::DenseAxisArray
-    description::String
-    GamsParameter(s::GamsSet;description = "") = new([s],DenseAxisArray(zeros(length(s)),s),description)
-    GamsParameter(s::Vector{GamsSet};description = "") = new(s,DenseAxisArray(zeros(length.(s)...),s...),description)
-    GamsParameter(s::Vector{GamsSet},v::DenseAxisArray,d::String) = new(s,v,d)
+
+
+function GamsParameter(columns,GU::GamsUniverse; description = "",initial_value = zeros)
+    sets = [GU[c] for c in columns]
+    return GamsParameter(columns,sets,description = description)
 end
 
 
-
-function GamsParameter(base_path::String,parm_name::Symbol,columns::Vector,sets;description = "")
-
-    return GamsParameter(base_path,parm_name,columns[1],sets,description = columns[2])
-
-end
-
-function GamsParameter(base_path::String,parm_name::Symbol,columns,sets;description = "")
-
+function GamsParameter(base_path::String,parm_name::Symbol,columns,GU::GamsUniverse;description = "")
     df = CSV.File("$base_path/$parm_name.csv",stringtype=String,silencewarnings=true)
-    s = [sets[c] for c in columns]
-    out = GamsParameter(s,description = description)
-    #DenseAxisArray(zeros(length.(s)...),s...)
+    s = [GU[c] for c in columns]
+    out = GamsParameter(columns,s,description = description)
 
     for row in df
         out[Symbol.([row[c] for c in columns])...] = row[:value]
@@ -30,20 +19,8 @@ function GamsParameter(base_path::String,parm_name::Symbol,columns,sets;descript
 end
 
 
-
-function GamsParameter(columns::Vector,sets;initial_value = zeros)
-    sets = [sets[c] for c in columns[1]]
-    return GamsParameter(sets,description = columns[2])
-end
-
-function GamsParameter(columns,sets; description = "",initial_value = zeros)
-    sets = [sets[c] for c in columns]
-    return GamsParameter(sets,description = description)
-end
-
-macro GamsParameters(parm_dict,sets,block)
-    parm_dict = esc(parm_dict)
-    sets = esc(sets)
+macro GamsParameters(GU,block)
+    GU = esc(GU)
     if !(isa(block,Expr) && block.head == :block)
         error()
     end
@@ -57,16 +34,15 @@ macro GamsParameters(parm_dict,sets,block)
             if length(it.args) >= 3
                 desc = it.args[3]
             end
-            push!(code.args,:($parm_dict[$parm_name] = GamsParameter($columns,$sets,description = $desc)))
+            push!(code.args,:($add_parameter($GU,$parm_name, GamsParameter($columns,$GU,description = $desc))))
         end
     end
     return code
 end
 
 
-macro GamsParameters(parm_dict,sets,base_path,block)
-    parm_dict = esc(parm_dict)
-    sets = esc(sets)
+macro GamsParameters(GU,base_path,block)
+    GU = esc(GU)
     base_path = esc(base_path)
     if !(isa(block,Expr) && block.head == :block)
         error()
@@ -81,7 +57,7 @@ macro GamsParameters(parm_dict,sets,base_path,block)
             if length(it.args) >= 3
                 desc = it.args[3]
             end
-            push!(code.args,:($parm_dict[$parm_name] = GamsParameter($base_path,$parm_name,$columns,$sets,description = $desc)))
+            push!(code.args,:($add_parameter($GU,$parm_name, GamsParameter($base_path,$parm_name,$columns,$GU,description = $desc))))
         end
     end
     return code
