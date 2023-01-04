@@ -14,7 +14,8 @@ end
 
 
 function alias(GU::GamsUniverse,base_set::Symbol,alias::Symbol)
-    add_set(GU,alias,GU[base_set])
+    new_set = deepcopy(GU[base_set])
+    add_set(GU,alias,new_set)
 end
 
 function sets(GU::GamsUniverse)
@@ -59,4 +60,8 @@ function Base.show(io::IO, GU::GamsUniverse)
 
     return out
 
+end
+
+function Base.setindex!(GU::GamsUniverse,parm::GamsParameter,key::Symbol)
+    GU.parameters[key] = deepcopy(parm)
 end
