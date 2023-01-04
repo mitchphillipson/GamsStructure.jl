@@ -24,7 +24,7 @@ function unload(P::GamsParameter,path,parm_name)
 end
 
 
-function unload(GU::GamsUniverse,path)
+function unload(GU::GamsUniverse,path;to_unload = [])
     info = Dict()
     info[:set] = Dict()
     info[:parm] = Dict()
@@ -33,18 +33,24 @@ function unload(GU::GamsUniverse,path)
     path = "data/"
 
     for (key,set) in GU.sets
-        unload(set,path,key)
-        info[:set][key] = set.description
+        if to_unload == [] || key∈to_unload
+            unload(set,path,key)
+            info[:set][key] = set.description
+        end
     end
 
     for (key,parm) in GU.parameters
-        unload(parm,path,key)
-        info[:parm][key] = [parm.sets,parm.description]
+        if to_unload == [] || key∈to_unload
+            unload(parm,path,key)
+            info[:parm][key] = [parm.sets,parm.description]
+        end
 
     end
 
     for (key,scalar) in GU.scalars
-        info[:scalar][key] = Dict("scalar" => scalar.scalar, "description" => scalar.description)
+        if to_unload == [] || key∈to_unload
+            info[:scalar][key] = Dict("scalar" => scalar.scalar, "description" => scalar.description)
+        end
     end
 
     open("$path/gams_info.json","w") do f
