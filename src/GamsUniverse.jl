@@ -40,3 +40,23 @@ function Base.setindex!(X::GamsUniverse,scalar::Number,scalar_name::Symbol)
 end
 
 
+function Base.show(io::IO, GU::GamsUniverse)
+    out = "Sets\n\n"
+
+    for (key,set) in GU.sets
+        out *= "$key => $(set.description)\n"
+    end
+    out *= "\nParameters\n\n"
+    for (key,parm) in GU.parameters
+        out *= "$key => $(parm.sets) => $(parm.description)\n"
+    end
+    out *= "\nScalars\n\n"
+    for (key,s) in GU.scalars
+        out *= "$key => $(s.scalar) => $(s.description)\n"
+    end
+
+    print(out)
+
+    return out
+
+end

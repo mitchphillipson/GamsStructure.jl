@@ -105,3 +105,17 @@ function Base.iterate(iter::GamsParameter, state)
     next = iterate(iter.value, state)
     return next === nothing ? nothing : (next[1], next[2])
 end
+
+function Base.show(io::IO, parm::GamsParameter)
+    out = "Domain: $(parm.sets)\n"
+    if parm.description != ""
+        out *= "Description: $(parm.description)\n"
+    end
+    out *= "\n"
+    out *= string(parm.value)
+
+    print(out)
+
+    return out
+
+end
