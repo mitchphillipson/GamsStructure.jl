@@ -50,7 +50,6 @@ end
 
 
 
-
 function Base.show(io::IO,x::GamsElement)
     if x.description != ""
         print("$(x.name) \t \"$(x.description)\"")

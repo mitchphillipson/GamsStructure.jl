@@ -30,7 +30,6 @@ function unload(GU::GamsUniverse,path;to_unload = [])
     info[:parm] = Dict()
     info[:scalar] = Dict()
 
-    path = "data/"
 
     for (key,set) in GU.sets
         if to_unload == [] || key∈to_unload
