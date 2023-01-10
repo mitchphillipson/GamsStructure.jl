@@ -2,22 +2,54 @@
 
 function GamsParameter(columns,GU::GamsUniverse; description = "",initial_value = zeros)
     sets = [GU[c] for c in columns]
-    return GamsParameter(columns,sets,description = description)
+    return GamsParameter(GU,columns,sets,description = description)
 end
 
 
-function GamsParameter(base_path::String,parm_name::Symbol,columns,GU::GamsUniverse;description = "")
+"""
+    GamsParameter(base_path::String,parm_name::Symbol,sets,GU::GamsUniverse;description = "",columns = missing)
+
+Load a GamsParameter from a file. 
+"""
+
+function GamsParameter(base_path::String,parm_name::Symbol,sets,GU::GamsUniverse;description = "")
     df = CSV.File("$base_path/$parm_name.csv",stringtype=String,silencewarnings=true)
-    s = [GU[c] for c in columns]
-    out = GamsParameter(columns,s,description = description)
+    s = [GU[c] for c in sets]
+    out = GamsParameter(sets,s,description = description)
 
     for row in df
-        out[Symbol.([row[c] for c in columns])...] = row[:value]
+        out[Symbol.([row[c] for c in sets])...] = row[:value]
     end
+
+    #This doesn't work. There could be mulitple columns, and you're picking out by name
+    #out = GamsParameter(base_path,parm_name,sets,GU,collect(1:length(sets)),description = description)
 
     return out
 end
 
+"""
+    GamsParameter(base_path::String,parm_name::Symbol,sets,GU::GamsUniverse;description = "",columns = missing)
+
+Load a GamsParameter from a file. The columns vector is the specific columns to extract from the document. This is 
+primarily useful when the column names of a file either don't match the sets or repeat. 
+
+The value column is assumed to be at the end and should not be included in the columns argument. 
+"""
+function GamsParameter(base_path::String,parm_name::Symbol,sets::Tuple{Vararg{Symbol}},GU::GamsUniverse,columns::Vector{Int};description = "")
+    if length(sets)!=length(columns)
+        throw(DommainError("sets $sets must be the same length as columns $columns"))
+    end
+
+    df = CSV.File("$base_path/$parm_name.csv",stringtype=String,silencewarnings=true)
+    s = [GU[c] for c in sets]
+    out = GamsParameter(GU,sets,s,description = description)
+
+    for row in df
+        out[Symbol.([row[c] for c in columns])...] = row[end]
+    end
+
+    return out
+end
 
 macro GamsParameters(GU,block)
     GU = esc(GU)
@@ -29,12 +61,12 @@ macro GamsParameters(GU,block)
     for it in block.args
         if isexpr(it,:tuple)
             parm_name = it.args[1]
-            columns = it.args[2]
+            sets = it.args[2]
             desc = ""
             if length(it.args) >= 3
                 desc = it.args[3]
             end
-            push!(code.args,:($add_parameter($GU,$parm_name, GamsParameter($columns,$GU,description = $desc))))
+            push!(code.args,:($add_parameter($GU,$parm_name, GamsParameter($sets,$GU,description = $desc))))
         end
     end
     return code
@@ -52,12 +84,21 @@ macro GamsParameters(GU,base_path,block)
     for it in block.args
         if isexpr(it,:tuple)
             parm_name = it.args[1]
-            columns = it.args[2]
+            sets = it.args[2]
             desc = ""
             if length(it.args) >= 3
                 desc = it.args[3]
             end
-            push!(code.args,:($add_parameter($GU,$parm_name, GamsParameter($base_path,$parm_name,$columns,$GU,description = $desc))))
+            #columns = collect(1:length(sets))
+            if length(it.args) >= 4
+                columns = it.args[4]
+            
+                push!(code.args,:($add_parameter($GU,$parm_name, 
+                                GamsParameter($base_path,$parm_name,$sets,$GU,$columns,description = $desc))))
+            else
+                push!(code.args,:($add_parameter($GU,$parm_name, 
+                                    GamsParameter($base_path,$parm_name,$sets,$GU,description = $desc))))
+            end
         end
     end
     return code

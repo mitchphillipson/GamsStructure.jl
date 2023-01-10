@@ -7,8 +7,8 @@ mutable struct GamsElement
     name::Union{Symbol,Tuple}
     description::String
     active::Bool
-    GamsElement(x::Tuple,y="",active=true) = new(Tuple(Symbol(e) for e in x),String(y),active)
-    GamsElement(x,y="",active=true) = new(Symbol(x),String(y),active)
+    GamsElement(x::Tuple,y="",active=true) = new(Tuple(Symbol(e) for e in x),string(y),active)
+    GamsElement(x,y="",active=true) = new(Symbol(x),string(y),active) #what if y can't be convereted to a string?
 end
 
 
@@ -26,12 +26,13 @@ end
 
 
 struct GamsParameter
+    universe
     sets::Tuple{Symbol,Vararg{Symbol}}
     value::DenseAxisArray
     description::String
-    GamsParameter(set_name::Symbol,set::GamsSet;description = "") = new((set_name,),DenseAxisArray(zeros(length(set)),set),description)
-    GamsParameter(set_names::Tuple{Symbol,Vararg{Symbol}},sets::Vector{GamsSet};description = "") = new(set_names,DenseAxisArray(zeros(length.(sets)...),sets...),description)
-    GamsParameter(s::Tuple{Symbol,Vararg{Symbol}},v::DenseAxisArray,d::String) = new(s,v,d)
+    GamsParameter(GU,set_name::Symbol,set::GamsSet;description = "") = new(GU,(set_name,),DenseAxisArray(zeros(length(set)),set),description)
+    GamsParameter(GU,set_names::Tuple{Symbol,Vararg{Symbol}},sets::Vector{GamsSet};description = "") = new(GU,set_names,DenseAxisArray(zeros(length.(sets)...),sets...),description)
+    GamsParameter(GU,s::Tuple{Symbol,Vararg{Symbol}},v::DenseAxisArray,d::String) = new(GU,s,v,d)
 end
 
 

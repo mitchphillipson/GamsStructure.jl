@@ -20,9 +20,10 @@ function load_universe(path::String;to_load = [])
     for (key,parm) in info["parm"]
         key = Symbol(key)
         if to_load == [] || key ∈ to_load
-            sets,desc = parm
+            sets,desc,cols = parm
+            cols = [e for e in cols]
             sets = Tuple([Symbol(e) for e in sets])
-            add_parameter(nGU,key,GamsParameter(path,key,sets,nGU,description = desc))
+            add_parameter(nGU,key,GamsParameter(path,key,sets,nGU,cols,description = desc))
         end
     end
 

@@ -8,7 +8,7 @@ GU = GamsUniverse()
 
 
 @GamsSets(GU,"Examples/ex01_data",begin
-:i, "Canning plants", false
+:i, "Canning plants"
 :j, "Markets"
 end)
 
@@ -16,7 +16,7 @@ end)
 @GamsParameters(GU,"Examples/ex01_data",begin
 :a, (:i,), "Capacity of plant i in cases"
 :b, (:j,), "Demand at market j in cases"
-:d, (:i,:j), "distance in thousands of miles"
+:d, (:i,:j), "distance in thousands of miles", [1,2] #notice the file d.csv has the wrong columns
 end)
 
 @GamsParameters(GU,begin

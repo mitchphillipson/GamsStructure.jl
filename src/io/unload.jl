@@ -30,6 +30,9 @@ function unload(GU::GamsUniverse,path;to_unload = [])
     info[:parm] = Dict()
     info[:scalar] = Dict()
 
+    if !(isdir(path))
+        mkdir(path)
+    end
 
     for (key,set) in GU.sets
         if to_unload == [] || key∈to_unload
@@ -41,7 +44,8 @@ function unload(GU::GamsUniverse,path;to_unload = [])
     for (key,parm) in GU.parameters
         if to_unload == [] || key∈to_unload
             unload(parm,path,key)
-            info[:parm][key] = [parm.sets,parm.description]
+            cols = collect(1:length(parm.sets))
+            info[:parm][key] = [parm.sets,parm.description,cols]
         end
 
     end

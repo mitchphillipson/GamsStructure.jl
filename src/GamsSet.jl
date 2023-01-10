@@ -8,10 +8,27 @@ end
     GamsSet(base_path::String,set_name::Symbol;description = "",csv_description = true))
 
 Load a GamsSet from a CSV file at location base_path/set_name.csv. 
+
+Sets must be one dimensional (at least for now) and it's assumed the first column are the elements
+and the second column is the description. If the second column is missing, the description is ""
+
+Note: csv_description currently does nothing. 
 """
 function GamsSet(base_path::String,set_name::Symbol;description = "",csv_description = true)
     F = CSV.File("$base_path/$set_name.csv",stringtype=String,silencewarnings=true)
 	
+    out = []
+    cols = propertynames(F)
+    for row in F
+        element = row[1]
+        desc = ""
+        if length(cols)==2 && !(ismissing(row[2]))
+            desc = row[2]
+        end
+        push!(out,GamsElement(element,desc))
+    end
+
+    #=
     if csv_description
         cols = propertynames(F)[1:end-1]
     else
@@ -25,11 +42,13 @@ function GamsSet(base_path::String,set_name::Symbol;description = "",csv_descrip
             element = Tuple([row[c] for c in cols])
         end
         desc = ""
-        if csv_description && length(cols)!=0
+        if csv_description && length(cols)!=0 && !(ismissing(row[end]))
             desc = row[end]
         end
         push!(out,GamsElement(element,desc))
     end
+
+    =#
 
     return GamsSet(out,description)    
 end
