@@ -1,6 +1,6 @@
-function load_universe(path::String;to_load = [])
+function load_universe(path::String;to_load = [],nGU::GamsUniverse = GamsUniverse())
 
-    nGU = GamsUniverse()
+    #nGU = GamsUniverse()
 
     #info = Dict()
      #do f
@@ -36,4 +36,9 @@ function load_universe(path::String;to_load = [])
 
     return nGU
 
+end
+
+
+function load_universe!(GU::GamsUniverse,path::String;to_load = [])
+    load_universe(path,to_load = to_load,nGU = GU)
 end

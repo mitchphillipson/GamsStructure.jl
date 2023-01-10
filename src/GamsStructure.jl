@@ -11,7 +11,8 @@ using DelimitedFiles
 export GamsElement, GamsSet, GamsParameter, @GamsSets,
         @GamsParameters,@GamsDomainSets,GamsDomainSet,
         GamsUniverse,add_set,add_parameter,alias,GamsScalar,
-        @GamsScalars,add_scalar,scalar,unload,load_universe
+        @GamsScalars,add_scalar,scalar,unload,load_universe,
+        load_universe!
 
 
 
