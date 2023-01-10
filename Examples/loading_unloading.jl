@@ -48,3 +48,7 @@ It is an error if you try to load a parameter before you've loaded the sets
 nnGU = load_universe("loading_unloading",to_load = [:i])
 
 println(nnGU)
+
+load_universe!(nnGU,"loading_unloading",to_load = [:x])
+
+print(nnGU)
