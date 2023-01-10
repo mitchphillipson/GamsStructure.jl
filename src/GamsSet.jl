@@ -134,6 +134,27 @@ function Base.length(X::GamsSet)
     return length(_active_elements(X))
 end
 
+macro GamsSet(GU,set_name,description,block)
+    GU = esc(GU)
+    set_name = esc(set_name)
+    description = esc(description)
+    if !(isa(block,Expr) && block.head == :block)
+        error("Problem")
+    end
+    elements = []
+    for it in block.args
+        if isexpr(it,:tuple)
+            elm = it.args[1]
+            desc = ""
+            if length(it.args)>=2
+                desc = it.args[2]
+            end
+            push!(elements,GamsElement(elm,desc))
+        end
+    end
+
+    return :(add_set($GU,$set_name,GamsSet($elements,$description)))
+end
 
 
 macro GamsSets(GU,base_path,block)

@@ -5,17 +5,19 @@ Step 1: Set up a small dataset.
 """
 GU = GamsUniverse()
 
-add_set(GU,:i,GamsSet(
-    (:a,"a"),
-    (:b,"b"),
-    description = "This is only a test"
-))
+
+@GamsSet(GU,:i,"This is only a test",begin
+    a, "a"
+    b, "b"
+end)
 
 
-@GamsParameters(GU,begin
+@macroexpand @GamsParameters(GU,begin
     :x, (:i,:i), "First parameter. Notice repeated index."
     :y, (:i,), "Second parameter. This won't be unloaded."
 end)
+
+
 
 GU[:x][:a,:a] = 5
 GU[:x][:a,:b] = -9

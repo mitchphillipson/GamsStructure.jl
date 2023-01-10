@@ -1,8 +1,8 @@
 
 
-function GamsParameter(columns,GU::GamsUniverse; description = "",initial_value = zeros)
-    sets = [GU[c] for c in columns]
-    return GamsParameter(GU,columns,sets,description = description)
+function GamsParameter(set_names,GU::GamsUniverse; description = "",initial_value = zeros)
+    sets = [GU[c] for c in set_names]
+    return GamsParameter(GU,set_names,sets,description = description)
 end
 
 
@@ -15,7 +15,7 @@ Load a GamsParameter from a file.
 function GamsParameter(base_path::String,parm_name::Symbol,sets,GU::GamsUniverse;description = "")
     df = CSV.File("$base_path/$parm_name.csv",stringtype=String,silencewarnings=true)
     s = [GU[c] for c in sets]
-    out = GamsParameter(sets,s,description = description)
+    out = GamsParameter(GU,sets,s,description = description)
 
     for row in df
         out[Symbol.([row[c] for c in sets])...] = row[:value]
@@ -130,7 +130,7 @@ function Base.length(X::GamsParameter)
 end
 
 function Base.:*(X::GamsParameter,y)
-    return GamsParameter(X.sets,X.value*y,X.description)
+    return GamsParameter(X.universe,X.sets,X.value*y,X.description)
 end
 
 function Base.:*(x,Y::GamsParameter)
