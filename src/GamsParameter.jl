@@ -1,24 +1,18 @@
 
-
-function GamsParameter(set_names,GU::GamsUniverse; description = "",initial_value = zeros)
-    sets = [GU[c] for c in set_names]
-    return GamsParameter(GU,set_names,sets,description = description)
-end
-
-
 """
     GamsParameter(base_path::String,parm_name::Symbol,sets,GU::GamsUniverse;description = "",columns = missing)
 
 Load a GamsParameter from a file. 
 """
 
-function GamsParameter(base_path::String,parm_name::Symbol,sets,GU::GamsUniverse;description = "")
+function GamsParameter(base_path::String,parm_name::Symbol,sets::Tuple{Vararg{Symbol}},GU::GamsUniverse;description = "")
     df = CSV.File("$base_path/$parm_name.csv",stringtype=String,silencewarnings=true)
     s = [GU[c] for c in sets]
-    out = GamsParameter(GU,sets,s,description = description)
+    out = GamsParameter(GU,sets,description = description)
 
     for row in df
-        out[Symbol.([row[c] for c in sets])...] = row[:value]
+        elm = [[Symbol(row[c])] for c in sets]
+        out[elm...] = row[:value]
     end
 
     #This doesn't work. There could be mulitple columns, and you're picking out by name
@@ -42,10 +36,11 @@ function GamsParameter(base_path::String,parm_name::Symbol,sets::Tuple{Vararg{Sy
 
     df = CSV.File("$base_path/$parm_name.csv",stringtype=String,silencewarnings=true)
     s = [GU[c] for c in sets]
-    out = GamsParameter(GU,sets,s,description = description)
+    out = GamsParameter(GU,sets,description = description)
 
     for row in df
-        out[Symbol.([row[c] for c in columns])...] = row[end]
+        elm = [[Symbol(row[c])] for c in columns]
+        out[elm...] = row[:value]
     end
 
     return out
@@ -66,7 +61,7 @@ macro GamsParameters(GU,block)
             if length(it.args) >= 3
                 desc = it.args[3]
             end
-            push!(code.args,:($add_parameter($GU,$parm_name, GamsParameter($sets,$GU,description = $desc))))
+            push!(code.args,:($add_parameter($GU,$parm_name, GamsParameter($GU,$sets,description = $desc))))
         end
     end
     return code
@@ -105,37 +100,40 @@ macro GamsParameters(GU,base_path,block)
 end
 
 
+function _convert_idx(P::GamsParameter,i::Int,idx::Union{Symbol,Colon})
+    GU = P.universe
+    set = P.sets[i]
+    return collect(1:length(GU[set]))
+end
 
+function _convert_idx(P::GamsParameter,i::Int,idx::Vector{Symbol})
+    GU = P.universe
+    set = indexin(idx,[e for e in GU[P.sets[i]]])#findall(x-> x∈idx, GU[P.sets[i]])
+    if length(set) == 1
+        return set[1]
+    end
+    return set
+end
 
-function _convert_idx(idx)
+function _convert_idx(P::GamsParameter,i::Int,idx::Vector{Bool})
+    #GU = P.universe
+    #set = P.sets[i]
     return idx
 end
 
-function _convert_idx(idx::GamsSet)
+function _convert_idx(P::GamsParameter,i::Int,idx::GamsSet)
     return [e for e in idx]
 end
 
-function Base.getindex(X::GamsParameter,idx...)
-    new_index = _convert_idx.(idx)
-    return X.value[new_index...]
+function _convert_idx(P::GamsParameter,i::Int,idx)
+    return idx
 end
 
-function Base.setindex!(X::GamsParameter,value,idx...)
-    new_index = _convert_idx.(idx)
-    X.value[new_index...] = value
+function Base.getindex(P::GamsParameter,idx...)
+    idx = map(x->_convert_idx(P,x[1],x[2]),enumerate(idx))
+    return P.value[idx...]
 end
 
-function Base.length(X::GamsParameter)
-    return length(X.value)
-end
-
-function Base.:*(X::GamsParameter,y)
-    return GamsParameter(X.universe,X.sets,X.value*y,X.description)
-end
-
-function Base.:*(x,Y::GamsParameter)
-    return Y*x
-end
 
 function Base.iterate(iter::GamsParameter)
     next = iterate(iter.value)
@@ -147,16 +145,27 @@ function Base.iterate(iter::GamsParameter, state)
     return next === nothing ? nothing : (next[1], next[2])
 end
 
-function Base.show(io::IO, parm::GamsParameter)
-    out = "Domain: $(parm.sets)\n"
-    if parm.description != ""
-        out *= "Description: $(parm.description)\n"
-    end
-    out *= "\n"
-    out *= string(parm.value)
 
-    print(out)
-
-    return out
-
+function Base.setindex!(X::GamsParameter,value,idx...)
+    new_index = map(x->_convert_idx(X,x[1],x[2]),enumerate(idx))
+    X.value[new_index...] = value
 end
+
+function Base.length(X::GamsParameter)
+    return length(X.value)
+end
+
+
+function Base.show(io::IO,P::GamsParameter)
+    print("Description: $(P.description)\nDomain: $(P.sets)\n\n")
+    show(P.value)
+end
+
+
+#function Base.:*(P::GamsParameter,x)
+#    return P.value*x
+#end
+
+#function Base.:*(x,P::GamsParameter)
+#    return P.value*x
+#end

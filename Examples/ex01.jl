@@ -39,14 +39,14 @@ this code, it works to use GU[:f] in place of f in the following line.
 However, if used in a JuMP model, extracting this information is necessary
 as JuMP doesn't recognize the datatype and will throw and error.
 """
-begin
-    local i = GU[:i]
-    local j = GU[:j]
+#begin
+#    local i = GU[:i]
+#    local j = GU[:j]
 
-    local f = scalar(GU[:f])
+#    local f = scalar(GU[:f])
 
-    GU[:c][i,j] = f*GU[:d][i,j]/1000
-end
+GU[:c][:i,:j] = scalar(GU[:f])*GU[:d][:i,:j]/1000
+#end
 
 function transport_model(GU)
     i = GU[:i]
@@ -60,10 +60,10 @@ function transport_model(GU)
 
     @variable(m,x[i,j]>=0)
 
-    @objective(m, Min, sum(c[I,J]*x[I,J] for I∈i,J∈j))
+    @objective(m, Min, sum(c[:i,:j].*x))
 
-    @constraint(m, supply[I=i], sum(x[I,J] for J∈j) <= a[I])
-    @constraint(m, demand[J=j], sum(x[I,J] for I∈i) >= b[J])
+    @constraint(m, supply[I=i], sum(x[I,J] for J∈j) <= a[[I]])
+    @constraint(m, demand[J=j], sum(x[I,J] for I∈i) >= b[[J]])
 
     return m
 end
@@ -84,9 +84,9 @@ function transport_model_mcp(GU)
     @variable(m,x[i,j]>=0)
 
 
-    @mapping(m,profit[I = i,J=j], w[I]+c[I,J]-p[J])
-    @mapping(m,supply[I = i], a[I] - sum(x[I,J] for J∈j))
-    @mapping(m,demand[J=j], sum(x[I,J] for I∈i) - b[J])
+    @mapping(m,profit[I = i,J=j], w[I]+c[[I],[J]]-p[J])
+    @mapping(m,supply[I = i], a[[I]] - sum(x[I,J] for J∈j))
+    @mapping(m,demand[J=j], sum(x[I,J] for I∈i) - b[[J]])
 
     @complementarity(m,profit,x)
     @complementarity(m,supply,w)

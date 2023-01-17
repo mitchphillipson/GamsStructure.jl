@@ -25,14 +25,13 @@ end
 
 
 
-struct GamsParameter
+struct GamsParameter{N}
     universe
-    sets::Tuple{Symbol,Vararg{Symbol}}
-    value::DenseAxisArray
+    sets::Tuple{Vararg{Symbol}}
+    value::Array{Float64,N}
     description::String
-    GamsParameter(GU,set_name::Symbol,set::GamsSet;description = "") = new(GU,(set_name,),DenseAxisArray(zeros(length(set)),set),description)
-    GamsParameter(GU,set_names::Tuple{Symbol,Vararg{Symbol}},sets::Vector{GamsSet};description = "") = new(GU,set_names,DenseAxisArray(zeros(length.(sets)...),sets...),description)
-    GamsParameter(GU,s::Tuple{Symbol,Vararg{Symbol}},v::DenseAxisArray,d::String) = new(GU,s,v,d)
+    GamsParameter(GU,sets::Tuple{Vararg{Symbol}},description::String) = new{length(sets)}(GU,sets,zeros(Float64,Tuple(length(GU[e]) for e∈sets)),description)
+    GamsParameter(GU,sets::Tuple{Vararg{Symbol}};description = "") = new{length(sets)}(GU,sets,zeros(Float64,Tuple(length(GU[e]) for e∈sets)),description)
 end
 
 

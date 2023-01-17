@@ -6,17 +6,20 @@ function unload(S::GamsSet,path,set_name)
 end
 
 
-function unload(P::GamsParameter,path,parm_name)
+function unload(GU::GamsUniverse,P::GamsParameter,path,parm_name)
 
     out = Vector{Vector{Any}}()
 
     tmp = [string(s) for s in P.sets]
     push!(tmp,"value")
     push!(out,tmp)
-    for idx ∈ Iterators.product(P.value.axes...)
+
+    axes = [[e for e∈GU[s]] for s∈P.sets]
+    for idx ∈ Iterators.product(axes...)
         tmp = Vector{Any}()
         append!(tmp,[idx...])
-        push!(tmp,P[idx...])
+        ind = [[i] for i∈idx]
+        push!(tmp,P[ind...])
         push!(out,tmp)
     end
 
@@ -43,7 +46,7 @@ function unload(GU::GamsUniverse,path;to_unload = [])
 
     for (key,parm) in GU.parameters
         if to_unload == [] || key∈to_unload
-            unload(parm,path,key)
+            unload(GU,parm,path,key)
             cols = collect(1:length(parm.sets))
             info[:parm][key] = [parm.sets,parm.description,cols]
         end
