@@ -12,7 +12,7 @@ GU = GamsUniverse()
 end)
 
 
-@macroexpand @GamsParameters(GU,begin
+@GamsParameters(GU,begin
     :x, (:i,:i), "First parameter. Notice repeated index."
     :y, (:i,), "Second parameter. This won't be unloaded."
 end)

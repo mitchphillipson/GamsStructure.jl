@@ -90,7 +90,7 @@ _active_elements(S::GamsSet) = [e for e in S.elements if e.active]
 
 Base.iterate(S::GamsSet,state = 1) = state> length(S) ? nothing : (_active_elements(S)[state].name,state+1)
 
-
+Base.keys(S::GamsSet) = [e for e in S]
 
 function Base.show(io::IO, x::GamsSet)
     if x.description != ""
