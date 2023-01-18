@@ -102,13 +102,14 @@ end
 
 function _convert_idx(P::GamsParameter,i::Int,idx::Union{Symbol,Colon})
     GU = P.universe
-    set = P.sets[i]
-    return collect(1:length(GU[set]))
+    set = GU[P.sets[i]]
+    return _convert_idx(P,i,[e for e in set])
 end
 
 function _convert_idx(P::GamsParameter,i::Int,idx::Vector{Symbol})
-    GU = P.universe
-    set = indexin(idx,[e for e in GU[P.sets[i]]])#findall(x-> x∈idx, GU[P.sets[i]])
+    set_index = P.universe[P.sets[i]].index
+    set = [set_index[e] for e in idx]
+    #indexin(idx,[e for e in GU[P.sets[i]]])#findall(x-> x∈idx, GU[P.sets[i]])
     if length(set) == 1
         return set[1]
     end
@@ -122,7 +123,7 @@ function _convert_idx(P::GamsParameter,i::Int,idx::Vector{Bool})
 end
 
 function _convert_idx(P::GamsParameter,i::Int,idx::GamsSet)
-    return [e for e in idx]
+    return _convert_idx(P,i,[e for e in idx])
 end
 
 function _convert_idx(P::GamsParameter,i::Int,idx)

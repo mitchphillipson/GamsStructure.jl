@@ -20,7 +20,8 @@ Container to hold GamsElements.
 struct GamsSet
     elements::Vector{GamsElement}
     description::String
-    GamsSet(e,description = "") = new(e,description)
+    index::Dict{Symbol,Int}
+    GamsSet(e,description = "") = new(e,description,Dict(b=>a for (a,b) in enumerate([i.name for i in e])))
 end
 
 
@@ -30,8 +31,8 @@ struct GamsParameter{N}
     sets::Tuple{Vararg{Symbol}}
     value::Array{Float64,N}
     description::String
-    GamsParameter(GU,sets::Tuple{Vararg{Symbol}},description::String) = new{length(sets)}(GU,sets,zeros(Float64,Tuple(length(GU[e]) for e∈sets)),description)
-    GamsParameter(GU,sets::Tuple{Vararg{Symbol}};description = "") = new{length(sets)}(GU,sets,zeros(Float64,Tuple(length(GU[e]) for e∈sets)),description)
+    GamsParameter(GU,sets::Tuple{Vararg{Symbol}},description::String) = new{length(sets)}(GU,sets,zeros(Float64,Tuple(length(GU[e].elements) for e∈sets)),description)
+    GamsParameter(GU,sets::Tuple{Vararg{Symbol}};description = "") = new{length(sets)}(GU,sets,zeros(Float64,Tuple(length(GU[e].elements) for e∈sets)),description)
 end
 
 
