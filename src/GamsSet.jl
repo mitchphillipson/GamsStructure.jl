@@ -1,50 +1,38 @@
-"""
-    GamsElement(Name, Description, active = true)
 
-A base struct for GamsSets. Each Name will be converted to a symbol. 
-"""
-mutable struct GamsElement
-    name::Union{Symbol,Tuple}
-    description::String
-    active::Bool
-    GamsElement(x::Tuple,y="",active=true) = new(Tuple(Symbol(e) for e in x),String(y),active)
-    GamsElement(x,y="",active=true) = new(Symbol(x),String(y),active)
-end
-
-
-function Base.show(io::IO,x::GamsElement)
-    if x.description != ""
-        print("$(x.name) \t \"$(x.description)\"")
-    else
-        print("$(x.name)")
-    end
-end
-
-"""
-    GamsSet(Elements::Vector{GamsElement}, description = "")
-
-Container to hold GamsElements. 
-"""
-struct GamsSet
-    elements::Vector{GamsElement}
-    description::String
-    GamsSet(e,d = "") = new(e,d)
-end
 
 function GamsSet(x::Tuple...;description = "")
     return GamsSet([GamsElement(a,b) for (a,b) in x],description)
 end
 
 
-
+function GamsSet(e::Vector{Symbol};description = "")   
+    return GamsSet([GamsElement(i,"") for i∈e],description)
+end
 """
     GamsSet(base_path::String,set_name::Symbol;description = "",csv_description = true))
 
 Load a GamsSet from a CSV file at location base_path/set_name.csv. 
+
+Sets must be one dimensional (at least for now) and it's assumed the first column are the elements
+and the second column is the description. If the second column is missing, the description is ""
+
+Note: csv_description currently does nothing. 
 """
 function GamsSet(base_path::String,set_name::Symbol;description = "",csv_description = true)
     F = CSV.File("$base_path/$set_name.csv",stringtype=String,silencewarnings=true)
 	
+    out = []
+    cols = propertynames(F)
+    for row in F
+        element = row[1]
+        desc = ""
+        if length(cols)==2 && !(ismissing(row[2]))
+            desc = row[2]
+        end
+        push!(out,GamsElement(element,desc))
+    end
+
+    #=
     if csv_description
         cols = propertynames(F)[1:end-1]
     else
@@ -58,11 +46,13 @@ function GamsSet(base_path::String,set_name::Symbol;description = "",csv_descrip
             element = Tuple([row[c] for c in cols])
         end
         desc = ""
-        if csv_description && length(cols)!=0
+        if csv_description && length(cols)!=0 && !(ismissing(row[end]))
             desc = row[end]
         end
         push!(out,GamsElement(element,desc))
     end
+
+    =#
 
     return GamsSet(out,description)    
 end
@@ -104,7 +94,7 @@ _active_elements(S::GamsSet) = [e for e in S.elements if e.active]
 
 Base.iterate(S::GamsSet,state = 1) = state> length(S) ? nothing : (_active_elements(S)[state].name,state+1)
 
-
+Base.keys(S::GamsSet) = [e for e in S]
 
 function Base.show(io::IO, x::GamsSet)
     if x.description != ""
@@ -138,6 +128,17 @@ function Base.getindex(X::GamsSet,i::GamsSet)
     return GamsSet([e for e in X.elements if e in i])
 end
 
+function Base.lastindex(X::GamsSet)
+    elm = X.elements[end]
+    out = elm.name
+    return out
+end
+
+function Base.firstindex(X::GamsSet)
+    elm = X.elements[begin]
+    out = elm.name
+    return out
+end
 
 
 function Base.setindex!(X::GamsSet,active::Bool,i)
@@ -148,10 +149,31 @@ function Base.length(X::GamsSet)
     return length(_active_elements(X))
 end
 
+macro GamsSet(GU,set_name,description,block)
+    GU = esc(GU)
+    set_name = esc(set_name)
+    description = esc(description)
+    if !(isa(block,Expr) && block.head == :block)
+        error("Problem")
+    end
+    elements = []
+    for it in block.args
+        if isexpr(it,:tuple)
+            elm = it.args[1]
+            desc = ""
+            if length(it.args)>=2
+                desc = it.args[2]
+            end
+            push!(elements,GamsElement(elm,desc))
+        end
+    end
+
+    return :(add_set($GU,$set_name,GamsSet($elements,$description)))
+end
 
 
-macro GamsSets(sets,base_path,block)
-    sets = esc(sets)
+macro GamsSets(GU,base_path,block)
+    GU = esc(GU)
     base_path = esc(base_path)
     if !(isa(block,Expr) && block.head == :block)
         error("Problem")
@@ -168,20 +190,20 @@ macro GamsSets(sets,base_path,block)
             if length(it.args)>=3
                 csv_desc = it.args[3]
             end
-            push!(code.args,:($sets[$set_name] = GamsSet(
+            push!(code.args,:($add_set($GU,$set_name, GamsSet(
                                 $base_path,
                                 $set_name,
                                 description = $desc,
                                 csv_description = $csv_desc)
-                            )
+                            ))
             )
         end
     end
     return code
 end
 
-macro GamsDomainSets(sets,base_path,block)
-    sets = esc(sets)
+macro GamsDomainSets(GU,base_path,block)
+    GU = esc(GU)
     base_path = esc(base_path)
     if !(isa(block,Expr) && block.head == :block)
         error("Problem")
@@ -196,14 +218,17 @@ macro GamsDomainSets(sets,base_path,block)
             if length(it.args)>=4
                 desc = it.args[4]
             end
-            push!(code.args,:($sets[$var] =  GamsDomainSet(
+            push!(code.args,:($add_set($GU,$var,  GamsDomainSet(
                                     $base_path,
                                     $parm,
                                     $col,
                                     description = $desc    
-            )))
+            ))))
         end
     end
     return code
 
 end
+
+
+

@@ -1,49 +1,53 @@
-struct GamsParameter
-    sets::Vector{GamsSet}
-    value::DenseAxisArray
-    description::String
-    GamsParameter(s::GamsSet;description = "") = new([s],DenseAxisArray(zeros(length(s)),s),description)
-    GamsParameter(s::Vector{GamsSet};description = "") = new(s,DenseAxisArray(zeros(length.(s)...),s...),description)
-    GamsParameter(s::Vector{GamsSet},v::DenseAxisArray,d::String) = new(s,v,d)
-end
 
+"""
+    GamsParameter(base_path::String,parm_name::Symbol,sets,GU::GamsUniverse;description = "",columns = missing)
 
+Load a GamsParameter from a file. 
+"""
 
-function GamsParameter(base_path::String,parm_name::Symbol,columns::Vector,sets;description = "")
-
-    return GamsParameter(base_path,parm_name,columns[1],sets,description = columns[2])
-
-end
-
-function GamsParameter(base_path::String,parm_name::Symbol,columns,sets;description = "")
-
+function GamsParameter(base_path::String,parm_name::Symbol,sets::Tuple{Vararg{Symbol}},GU::GamsUniverse;description = "")
     df = CSV.File("$base_path/$parm_name.csv",stringtype=String,silencewarnings=true)
-    s = [sets[c] for c in columns]
-    out = GamsParameter(s,description = description)
-    #DenseAxisArray(zeros(length.(s)...),s...)
+    s = [GU[c] for c in sets]
+    out = GamsParameter(GU,sets,description = description)
 
     for row in df
-        out[Symbol.([row[c] for c in columns])...] = row[:value]
+        elm = [[Symbol(row[c])] for c in sets]
+        out[elm...] = row[:value]
+    end
+
+    #This doesn't work. There could be mulitple columns, and you're picking out by name
+    #out = GamsParameter(base_path,parm_name,sets,GU,collect(1:length(sets)),description = description)
+
+    return out
+end
+
+"""
+    GamsParameter(base_path::String,parm_name::Symbol,sets,GU::GamsUniverse;description = "",columns = missing)
+
+Load a GamsParameter from a file. The columns vector is the specific columns to extract from the document. This is 
+primarily useful when the column names of a file either don't match the sets or repeat. 
+
+The value column is assumed to be at the end and should not be included in the columns argument. 
+"""
+function GamsParameter(base_path::String,parm_name::Symbol,sets::Tuple{Vararg{Symbol}},GU::GamsUniverse,columns::Vector{Int};description = "")
+    if length(sets)!=length(columns)
+        throw(DommainError("sets $sets must be the same length as columns $columns"))
+    end
+
+    df = CSV.File("$base_path/$parm_name.csv",stringtype=String,silencewarnings=true)
+    s = [GU[c] for c in sets]
+    out = GamsParameter(GU,sets,description = description)
+
+    for row in df
+        elm = [[Symbol(row[c])] for c in columns]
+        out[elm...] = row[:value]
     end
 
     return out
 end
 
-
-
-function GamsParameter(columns::Vector,sets;initial_value = zeros)
-    sets = [sets[c] for c in columns[1]]
-    return GamsParameter(sets,description = columns[2])
-end
-
-function GamsParameter(columns,sets; description = "",initial_value = zeros)
-    sets = [sets[c] for c in columns]
-    return GamsParameter(sets,description = description)
-end
-
-macro GamsParameters(parm_dict,sets,block)
-    parm_dict = esc(parm_dict)
-    sets = esc(sets)
+macro GamsParameters(GU,block)
+    GU = esc(GU)
     if !(isa(block,Expr) && block.head == :block)
         error()
     end
@@ -52,21 +56,20 @@ macro GamsParameters(parm_dict,sets,block)
     for it in block.args
         if isexpr(it,:tuple)
             parm_name = it.args[1]
-            columns = it.args[2]
+            sets = it.args[2]
             desc = ""
             if length(it.args) >= 3
                 desc = it.args[3]
             end
-            push!(code.args,:($parm_dict[$parm_name] = GamsParameter($columns,$sets,description = $desc)))
+            push!(code.args,:($add_parameter($GU,$parm_name, GamsParameter($GU,$sets,description = $desc))))
         end
     end
     return code
 end
 
 
-macro GamsParameters(parm_dict,sets,base_path,block)
-    parm_dict = esc(parm_dict)
-    sets = esc(sets)
+macro GamsParameters(GU,base_path,block)
+    GU = esc(GU)
     base_path = esc(base_path)
     if !(isa(block,Expr) && block.head == :block)
         error()
@@ -76,49 +79,62 @@ macro GamsParameters(parm_dict,sets,base_path,block)
     for it in block.args
         if isexpr(it,:tuple)
             parm_name = it.args[1]
-            columns = it.args[2]
+            sets = it.args[2]
             desc = ""
             if length(it.args) >= 3
                 desc = it.args[3]
             end
-            push!(code.args,:($parm_dict[$parm_name] = GamsParameter($base_path,$parm_name,$columns,$sets,description = $desc)))
+            #columns = collect(1:length(sets))
+            if length(it.args) >= 4
+                columns = it.args[4]
+            
+                push!(code.args,:($add_parameter($GU,$parm_name, 
+                                GamsParameter($base_path,$parm_name,$sets,$GU,$columns,description = $desc))))
+            else
+                push!(code.args,:($add_parameter($GU,$parm_name, 
+                                    GamsParameter($base_path,$parm_name,$sets,$GU,description = $desc))))
+            end
         end
     end
     return code
 end
 
 
+function _convert_idx(P::GamsParameter,i::Int,idx::Union{Symbol,Colon})
+    GU = P.universe
+    set = GU[P.sets[i]]
+    return _convert_idx(P,i,[e for e in set])
+end
 
+function _convert_idx(P::GamsParameter,i::Int,idx::Vector{Symbol})
+    set_index = P.universe[P.sets[i]].index
+    set = [set_index[e] for e in idx]
+    #indexin(idx,[e for e in GU[P.sets[i]]])#findall(x-> x∈idx, GU[P.sets[i]])
+    if length(set) == 1
+        return set[1]
+    end
+    return set
+end
 
-function _convert_idx(idx)
+function _convert_idx(P::GamsParameter,i::Int,idx::Vector{Bool})
+    #GU = P.universe
+    #set = P.sets[i]
     return idx
 end
 
-function _convert_idx(idx::GamsSet)
-    return [e for e in idx]
+function _convert_idx(P::GamsParameter,i::Int,idx::GamsSet)
+    return _convert_idx(P,i,[e for e in idx])
 end
 
-function Base.getindex(X::GamsParameter,idx...)
-    new_index = _convert_idx.(idx)
-    return X.value[new_index...]
+function _convert_idx(P::GamsParameter,i::Int,idx)
+    return idx
 end
 
-function Base.setindex!(X::GamsParameter,value,idx...)
-    new_index = _convert_idx.(idx)
-    X.value[new_index...] = value
+function Base.getindex(P::GamsParameter,idx...)
+    idx = map(x->_convert_idx(P,x[1],x[2]),enumerate(idx))
+    return P.value[idx...]
 end
 
-function Base.length(X::GamsParameter)
-    return length(X.value)
-end
-
-function Base.:*(X::GamsParameter,y)
-    return GamsParameter(X.sets,X.value*y,X.description)
-end
-
-function Base.:*(x,Y::GamsParameter)
-    return Y*x
-end
 
 function Base.iterate(iter::GamsParameter)
     next = iterate(iter.value)
@@ -129,3 +145,28 @@ function Base.iterate(iter::GamsParameter, state)
     next = iterate(iter.value, state)
     return next === nothing ? nothing : (next[1], next[2])
 end
+
+
+function Base.setindex!(X::GamsParameter,value,idx...)
+    new_index = map(x->_convert_idx(X,x[1],x[2]),enumerate(idx))
+    X.value[new_index...] = value
+end
+
+function Base.length(X::GamsParameter)
+    return length(X.value)
+end
+
+
+function Base.show(io::IO,P::GamsParameter)
+    print("Description: $(P.description)\nDomain: $(P.sets)\n\n")
+    show(P.value)
+end
+
+
+#function Base.:*(P::GamsParameter,x)
+#    return P.value*x
+#end
+
+#function Base.:*(x,P::GamsParameter)
+#    return P.value*x
+#end
