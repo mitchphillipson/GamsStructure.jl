@@ -8,19 +8,19 @@ GU = GamsUniverse()
 
 
 @GamsSets(GU,"Examples/ex01_data",begin
-:i, "Canning plants"
-:j, "Markets"
+    :i, "Canning plants"
+    :j, "Markets"
 end)
 
 
 @GamsParameters(GU,"Examples/ex01_data",begin
-:a, (:i,), "Capacity of plant i in cases"
-:b, (:j,), "Demand at market j in cases"
-:d, (:i,:j), "distance in thousands of miles", [1,2] #notice the file d.csv has the wrong columns
+    :a, (:i,), "Capacity of plant i in cases"
+    :b, (:j,), "Demand at market j in cases"
+    :d, (:i,:j), "distance in thousands of miles", [1,2] #notice the file d.csv has the wrong columns
 end)
 
 @GamsParameters(GU,begin
-:c, (:i,:j), "transport cost in thousands of dollars per case"
+    :c, (:i,:j), "transport cost in thousands of dollars per case"
 end)
 
 @GamsScalars(GU,begin
@@ -39,14 +39,8 @@ this code, it works to use GU[:f] in place of f in the following line.
 However, if used in a JuMP model, extracting this information is necessary
 as JuMP doesn't recognize the datatype and will throw and error.
 """
-#begin
-#    local i = GU[:i]
-#    local j = GU[:j]
-
-#    local f = scalar(GU[:f])
-
 GU[:c][:i,:j] = scalar(GU[:f])*GU[:d][:i,:j]/1000
-#end
+
 
 function transport_model(GU)
     i = GU[:i]
