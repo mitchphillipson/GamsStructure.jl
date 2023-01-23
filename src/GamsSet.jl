@@ -4,6 +4,10 @@ function GamsSet(x::Tuple...;description = "")
     return GamsSet([GamsElement(a,b) for (a,b) in x],description)
 end
 
+
+function GamsSet(e::Vector{Symbol};description = "")   
+    return GamsSet([GamsElement(i,"") for i∈e],description)
+end
 """
     GamsSet(base_path::String,set_name::Symbol;description = "",csv_description = true))
 
@@ -124,6 +128,17 @@ function Base.getindex(X::GamsSet,i::GamsSet)
     return GamsSet([e for e in X.elements if e in i])
 end
 
+function Base.lastindex(X::GamsSet)
+    elm = X.elements[end]
+    out = elm.name
+    return out
+end
+
+function Base.firstindex(X::GamsSet)
+    elm = X.elements[begin]
+    out = elm.name
+    return out
+end
 
 
 function Base.setindex!(X::GamsSet,active::Bool,i)
