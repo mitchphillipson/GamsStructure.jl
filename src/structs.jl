@@ -21,7 +21,8 @@ struct GamsSet
     elements::Vector{GamsElement}
     description::String
     index::Dict{Symbol,Int}
-    GamsSet(e,description = "") = new(e,description,Dict(b=>a for (a,b) in enumerate([i.name for i in e])))
+    aliases::Vector{Symbol}
+    GamsSet(e,description = "") = new(e,description,Dict(b=>a for (a,b) in enumerate([i.name for i in e])),[])
 end
 
 

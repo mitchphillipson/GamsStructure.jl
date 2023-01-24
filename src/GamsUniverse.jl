@@ -15,6 +15,10 @@ end
 
 function alias(GU::GamsUniverse,base_set::Symbol,alias::Symbol)
     new_set = deepcopy(GU[base_set])
+    push!(new_set.aliases,base_set)
+    for al in new_set.aliases
+        push!(GU[al].aliases,alias)
+    end
     add_set(GU,alias,new_set)
 end
 
@@ -45,7 +49,11 @@ function Base.show(io::IO, GU::GamsUniverse)
     out = "Sets\n\n"
 
     for (key,set) in GU.sets
-        out *= "$key => $(set.description)\n"
+        out *= "$key => $(set.description)"
+        if length(set.aliases)>0
+            out *=" => Aliases: $(set.aliases)"
+        end
+        out*="\n"
     end
     out *= "\nParameters\n\n"
     for (key,parm) in GU.parameters

@@ -100,9 +100,19 @@ macro GamsParameters(GU,base_path,block)
 end
 
 
-function _convert_idx(P::GamsParameter,i::Int,idx::Union{Symbol,Colon})
+function _convert_idx(P::GamsParameter,i::Int,idx::Colon)
     GU = P.universe
     set = GU[P.sets[i]]
+    return _convert_idx(P,i,[e for e in set])
+end
+
+
+function _convert_idx(P::GamsParameter,i::Int,idx::Symbol)
+    s = P.sets[i]
+    GU = P.universe
+    set = GU[s]
+    @assert (idx == s || idx∈set.aliases) "Index $idx at location $i does not match parameter domain $s or an alias $(set.aliases)"
+
     return _convert_idx(P,i,[e for e in set])
 end
 
