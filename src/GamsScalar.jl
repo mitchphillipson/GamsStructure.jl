@@ -1,39 +1,64 @@
 
-function Base.:+(X::GamsScalar,y)
+function Base.:+(X::GamsScalar,y::Number)
     return X.scalar+y
 end
 
-function Base.:+(y,X::GamsScalar)
-    return X+y
+function Base.:+(y::Number,X::GamsScalar)
+    return y+X.scalar
 end
 
-function Base.:*(X::GamsScalar,y)
+function Base.:+(X::GamsScalar,Y::GamsScalar)
+    return X.scalar+Y.scalar
+end
+
+function Base.:*(X::GamsScalar,y::Number)
     return X.scalar*y
 end
 
-function Base.:*(y,X::GamsScalar)
-    return X*y
+function Base.:*(y::Number,X::GamsScalar)
+    return y*X.scalar
+end
+
+function Base.:*(X::GamsScalar,Y::GamsScalar)
+    return X.scalar*Y.scalar
 end
 
 
-function Base.:-(X::GamsScalar,y)
+function Base.:-(X::GamsScalar,y::Number)
     return X.scalar-y
 end
 
-function Base.:-(y,X::GamsScalar)
-    return X-y
+function Base.:-(y::Number,X::GamsScalar)
+    return y-X.scalar
 end
 
-function Base.:/(X::GamsScalar,y)
+function Base.:-(X::GamsScalar,Y::GamsScalar)
+    return X.scalar-Y.scalar
+end
+
+function Base.:/(X::GamsScalar,y::Number)
     return X.scalar/y
 end
 
-function Base.:/(y,X::GamsScalar)
+function Base.:/(y::Number,X::GamsScalar)
     return y/X.scalar
 end
 
+function Base.:/(X::GamsScalar,Y::GamsScalar)
+    return X.scalar/Y.scalar
+end
 
+function Base.:^(X::GamsScalar,y::Number)
+    return X.scalar^y
+end
 
+function Base.:^(y::Number,X::GamsScalar)
+    return y^X.scalar
+end
+
+function Base.:^(X::GamsScalar,Y::GamsScalar)
+    return X.scalar^Y.scalar
+end
 
 macro GamsScalars(GU,block)
     GU = esc(GU)
