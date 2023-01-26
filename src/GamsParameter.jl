@@ -12,7 +12,9 @@ function GamsParameter(base_path::String,parm_name::Symbol,sets::Tuple{Vararg{Sy
 
     for row in df
         elm = [[Symbol(row[c])] for c in sets]
-        out[elm...] = row[:value]
+        if all([elm[i][1]∈s[i] for i=1:length(s)]) #Ensure the labels to be loaded are actually in the domain
+            out[elm...] = row[:value]
+        end
     end
 
     #This doesn't work. There could be mulitple columns, and you're picking out by name
@@ -40,7 +42,9 @@ function GamsParameter(base_path::String,parm_name::Symbol,sets::Tuple{Vararg{Sy
 
     for row in df
         elm = [[Symbol(row[c])] for c in columns]
-        out[elm...] = row[:value]
+        if all([elm[i][1]∈s[i] for i=1:length(s)])
+            out[elm...] = row[:value]
+        end
     end
 
     return out
