@@ -1,1 +1,1 @@
-{"parm":{"x":[["i","i"],"First parameter. Notice repeated index.",[1,2]]},"scalar":{},"set":{"i":"This is only a test"}}
+{"parm":{"y":[["i"],"Second parameter. This won't be unloaded.",[1]],"x":[["i","i"],"First parameter. Notice repeated index.",[1,2]]},"scalar":{},"set":{"j":["This is only a test",["i"]],"i":["This is only a test",["j"]]}}

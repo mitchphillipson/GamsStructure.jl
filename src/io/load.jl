@@ -9,10 +9,12 @@ function load_universe(path::String;to_load = [],nGU::GamsUniverse = GamsUnivers
     #end
 
 
-    for (key,desc) in info["set"]
+    for (key,(desc,aliases)) in info["set"]
         key = Symbol(key)
+        aliases = [Symbol(s) for s∈aliases if s∈keys(info["set"]) && (to_load == [] || Symbol(s)∈to_load)]
+        println(aliases)
         if to_load == [] || key ∈ to_load
-            add_set(nGU,key,GamsSet(path,key,description = desc))
+            add_set(nGU,key,GamsSet(path, key, description = desc, aliases=aliases))
         end
     end
 
@@ -31,6 +33,20 @@ function load_universe(path::String;to_load = [],nGU::GamsUniverse = GamsUnivers
         key = Symbol(key)
         if to_load == [] || key ∈ to_load
             add_scalar(nGU,key,GamsScalar(scalar["scalar"],description = scalar["description"]))
+        end
+    end
+
+
+    #How should aliases be handled?
+    for (set_name,set) in nGU.sets
+        #for a∈set.aliases
+        #    if 
+        #set.aliases = [a for a∈set.aliases if a∈keys(nGU.sets)] #only keep the aliases for exsting sets
+        for a∈set.aliases #Make sure aliases are reflexive.
+            a_set = nGU[a]
+            if set_name∉a_set.aliases
+                push!(a_set.aliases,set_name)
+            end
         end
     end
 

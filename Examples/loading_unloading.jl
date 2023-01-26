@@ -13,6 +13,8 @@ GU = GamsUniverse()
     b, "b"
 end)
 
+alias(GU,:i,:j)
+
 
 @GamsParameters(GU,begin
     :x, (:i,:i), "First parameter. Notice repeated index."
@@ -31,13 +33,13 @@ GU[:x][[:b],[:b]] = 1
 Step 2: Unload the dataset. The directory will be created if it doesn't exist.
 """
 
-unload(GU,load_file,to_unload = [:i,:x])
+unload(GU,load_file)#),to_unload = [:i,:x])
 
 """
-Step 3: Load into a new variable and see they are the same, with the exception of :y
+Step 3: Load into a new variable and see they are the same, with the exception of :y and the alias :j
 """
 
-nGU = load_universe(load_file)
+nGU = load_universe(load_file,to_load = [:i,:x])
 
 println(nGU)
 print(nGU[:x])
@@ -56,3 +58,14 @@ println(nnGU)
 load_universe!(nnGU,load_file,to_load = [:x])
 
 print(nnGU)
+
+
+load_universe!(nnGU,load_file,to_load = [:j])
+
+print(nnGU)
+
+"""
+Step 5: Load the entire thing, to ensure aliases work
+
+"""
+all_GU = load_universe(load_file)

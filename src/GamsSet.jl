@@ -18,7 +18,7 @@ and the second column is the description. If the second column is missing, the d
 
 Note: csv_description currently does nothing. 
 """
-function GamsSet(base_path::String,set_name::Symbol;description = "",csv_description = true)
+function GamsSet(base_path::String,set_name::Symbol;description = "",csv_description = true,aliases = [])
     F = CSV.File("$base_path/$set_name.csv",stringtype=String,silencewarnings=true)
 	
     out = []
@@ -32,29 +32,7 @@ function GamsSet(base_path::String,set_name::Symbol;description = "",csv_descrip
         push!(out,GamsElement(element,desc))
     end
 
-    #=
-    if csv_description
-        cols = propertynames(F)[1:end-1]
-    else
-        cols = propertynames(F)
-    end
-    out = []
-    for row in F
-        if length(cols) ∈ [0,1]
-            element = row[1]
-        else
-            element = Tuple([row[c] for c in cols])
-        end
-        desc = ""
-        if csv_description && length(cols)!=0 && !(ismissing(row[end]))
-            desc = row[end]
-        end
-        push!(out,GamsElement(element,desc))
-    end
-
-    =#
-
-    return GamsSet(out,description)    
+    return GamsSet(out,description,aliases)    
 end
 
 

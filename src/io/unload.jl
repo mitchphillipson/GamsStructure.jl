@@ -40,7 +40,7 @@ function unload(GU::GamsUniverse,path;to_unload = [])
     for (key,set) in GU.sets
         if to_unload == [] || key∈to_unload
             unload(set,path,key)
-            info[:set][key] = set.description
+            info[:set][key] = [set.description,set.aliases]
         end
     end
 
