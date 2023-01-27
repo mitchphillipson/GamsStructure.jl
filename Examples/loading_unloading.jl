@@ -28,6 +28,10 @@ GU[:x][[:a],[:b]] = -9
 GU[:x][[:b],[:a]] = pi
 GU[:x][[:b],[:b]] = 1
 
+@GamsScalars(GU,begin
+    :const, 5, "testing"
+end)
+
 
 """
 Step 2: Unload the dataset. The directory will be created if it doesn't exist.
