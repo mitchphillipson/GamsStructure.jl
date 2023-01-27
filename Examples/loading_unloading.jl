@@ -13,7 +13,7 @@ GU = GamsUniverse()
     b, "b"
 end)
 
-alias(GU,:i,:j)
+alias(GU,:i,:j,:t,:g) #:j, :t, :g are aliases of :i.
 
 
 @GamsParameters(GU,begin
