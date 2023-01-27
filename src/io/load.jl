@@ -12,7 +12,7 @@ function load_universe(path::String;to_load = [],nGU::GamsUniverse = GamsUnivers
     for (key,(desc,aliases)) in info["set"]
         key = Symbol(key)
         aliases = [Symbol(s) for s∈aliases if s∈keys(info["set"]) && (to_load == [] || Symbol(s)∈to_load)]
-        println(aliases)
+        
         if to_load == [] || key ∈ to_load
             add_set(nGU,key,GamsSet(path, key, description = desc, aliases=aliases))
         end
