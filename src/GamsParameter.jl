@@ -105,6 +105,8 @@ macro GamsParameters(GU,base_path,block)
 end
 
 
+
+
 function _convert_idx(P::GamsParameter,i::Int,idx::Colon)
     GU = P.universe
     set = GU[P.sets[i]]
