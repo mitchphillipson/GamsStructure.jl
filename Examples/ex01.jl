@@ -43,29 +43,32 @@ GU[:c][:i,:j] = scalar(GU[:f])*GU[:d][:i,:j]/1000
 
 
 function transport_model(GU)
-    i = GU[:i]
-    j = GU[:j]
+    #Extract sets, only for convenience 
+    I = GU[:i]
+    J = GU[:j]
     
+    #Same with parameters
     c = GU[:c]
     a = GU[:a]
     b = GU[:b]
 
     m = Model(GLPK.Optimizer)
 
-    @variable(m,x[i,j]>=0)
+    @variable(m,x[I,J]>=0)
 
     @objective(m, Min, sum(c[:i,:j].*x))
+    #@objective(m,Min, sum(c[[i],[j]]*x[i,j] for i∈I,j∈J))
 
-    @constraint(m, supply[I=i], sum(x[I,J] for J∈j) <= a[[I]])
-    @constraint(m, demand[J=j], sum(x[I,J] for I∈i) >= b[[J]])
+    @constraint(m, supply[i=I], sum(x[i,j] for j∈J) <= a[[i]])
+    @constraint(m, demand[j=J], sum(x[i,j] for i∈I) >= b[[j]])
 
     return m
 end
 
 
 function transport_model_mcp(GU)
-    i = GU[:i]
-    j = GU[:j]
+    I = GU[:i]
+    J = GU[:j]
 
     c = GU[:c]
     a = GU[:a]
@@ -73,14 +76,14 @@ function transport_model_mcp(GU)
 
     m = MCPModel()
 
-    @variable(m, w[i]>=0)
-    @variable(m, p[j]>=0)
-    @variable(m,x[i,j]>=0)
+    @variable(m, w[I]>=0)
+    @variable(m, p[J]>=0)
+    @variable(m,x[I,J]>=0)
 
 
-    @mapping(m,profit[I = i,J=j], w[I]+c[[I],[J]]-p[J])
-    @mapping(m,supply[I = i], a[[I]] - sum(x[I,J] for J∈j))
-    @mapping(m,demand[J=j], sum(x[I,J] for I∈i) - b[[J]])
+    @mapping(m,profit[i = I,j=J], w[i]+c[[i],[j]]-p[j])
+    @mapping(m,supply[i = I], a[[i]] - sum(x[i,j] for j∈J))
+    @mapping(m,demand[j=J], sum(x[i,j] for i∈I) - b[[j]])
 
     @complementarity(m,profit,x)
     @complementarity(m,supply,w)
