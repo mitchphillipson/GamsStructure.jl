@@ -12,9 +12,10 @@ function GamsParameter(base_path::String,parm_name::Symbol,sets::Tuple{Vararg{Sy
 
     for row in df
         elm = [[Symbol(row[c])] for c in sets]
-        if all([elm[i][1]∈s[i] for i=1:length(s)]) #Ensure the labels to be loaded are actually in the domain
+        #This is a huge negative impact on performance
+        #if all([elm[i][1]∈s[i] for i=1:length(s)]) #Ensure the labels to be loaded are actually in the domain
             out[elm...] = row[:value]
-        end
+        #end
     end
 
     #This doesn't work. There could be mulitple columns, and you're picking out by name
@@ -42,9 +43,9 @@ function GamsParameter(base_path::String,parm_name::Symbol,sets::Tuple{Vararg{Sy
 
     for row in df
         elm = [[Symbol(row[c])] for c in columns]
-        if all([elm[i][1]∈s[i] for i=1:length(s)])
+        #if all([elm[i][1]∈s[i] for i=1:length(s)])
             out[elm...] = row[:value]
-        end
+        #end
     end
 
     return out
@@ -104,6 +105,8 @@ macro GamsParameters(GU,base_path,block)
 end
 
 
+
+
 function _convert_idx(P::GamsParameter,i::Int,idx::Colon)
     GU = P.universe
     set = GU[P.sets[i]]
@@ -114,8 +117,9 @@ end
 function _convert_idx(P::GamsParameter,i::Int,idx::Symbol)
     s = P.sets[i]
     GU = P.universe
-    set = GU[s]
-    @assert (idx == s || idx∈set.aliases) "Index $idx at location $i does not match parameter domain $s or an alias $(set.aliases)"
+    parent_set = GU[s]
+    set = parent_set[GU[idx]]
+    #@assert (idx == s || idx∈set.aliases) "Index $idx at location $i does not match parameter domain $s or an alias $(set.aliases)"
 
     return _convert_idx(P,i,[e for e in set])
 end
@@ -144,6 +148,17 @@ function _convert_idx(P::GamsParameter,i::Int,idx)
     return idx
 end
 
+
+
+"""
+There are several choices for idx
+
+    1. : -> Return the entire parameter. This isn't a recommended usage, it's better to explicit about the set
+    2. Symbol -> The symbol represents a set name. Return the parameter restricted to the elments of the specified set.
+    3. Vector{Symbol} -> Return the elements of the paramter corresponding to the symbols in the vector
+    4. Vector{Bool} -> For masking, you'll usually have a mask defined before using this option
+    5. GamsSet -> Similar to 2, except giving an explicit GamsSet rather than its symbol.
+"""
 function Base.getindex(P::GamsParameter,idx...)
     idx = map(x->_convert_idx(P,x[1],x[2]),enumerate(idx))
     return P.value[idx...]

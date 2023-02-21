@@ -13,13 +13,15 @@ function add_scalar(GU::GamsUniverse,scalar_name::Symbol,scalar)
 end
 
 
-function alias(GU::GamsUniverse,base_set::Symbol,alias::Symbol)
-    new_set = deepcopy(GU[base_set])
-    push!(new_set.aliases,base_set)
-    for al in new_set.aliases
-        push!(GU[al].aliases,alias)
+function alias(GU::GamsUniverse,base_set::Symbol,aliases...)
+    for alias in aliases
+        new_set = deepcopy(GU[base_set])
+        push!(new_set.aliases,base_set)
+        for al in new_set.aliases
+            push!(GU[al].aliases,alias)
+        end
+        add_set(GU,alias,new_set)
     end
-    add_set(GU,alias,new_set)
 end
 
 function sets(GU::GamsUniverse)
