@@ -2,8 +2,8 @@
  
 Current Issues:
 
-1. Getting indices in parameters is very slow, like 10X slower than a regular array. I think the issue
-is needing to allow set elements to have a boolean on/off. Whenever you 
+1. ~~Getting indices in parameters is very slow, like 10X slower than a regular array. I think the issue
+is needing to allow set elements to have a boolean on/off. Whenever you ~~ Fixed
 
 
 Ideas for future addition:

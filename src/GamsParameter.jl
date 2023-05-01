@@ -109,44 +109,10 @@ function domain(P::GamsParameter)
 end
 
 
-function _convert_idx(P::GamsParameter,i::Int,idx::Colon)
-    GU = P.universe
-    set = GU[P.sets[i]]
-    return _convert_idx(P,i,[e for e in set])
-end
-
-
-function _convert_idx(P::GamsParameter,i::Int,idx::Symbol)
-    s = P.sets[i]
-    GU = P.universe
-    parent_set = GU[s]
-    set = parent_set[GU[idx]]
-    #@assert (idx == s || idx∈set.aliases) "Index $idx at location $i does not match parameter domain $s or an alias $(set.aliases)"
-    return _convert_idx(P,i,[e for e in set])
-end
-
-function _convert_idx(P::GamsParameter,i::Int,idx::Vector{Symbol})
-    set_index = P.universe[P.sets[i]].index
-    set = get.(Ref(set_index),idx,missing)#[set_index[e] for e in idx]
-    if length(set) == 1
-        return set[1]
-    end
-    return set
-end
-
-function _convert_idx(P::GamsParameter,i::Int,idx::Vector{Bool})
-    return idx
-end
-
-function _convert_idx(P::GamsParameter,i::Int,idx::GamsSet)
-    return _convert_idx(P,i,[e for e in idx])
-end
-
-function _convert_idx(P::GamsParameter,i::Int,idx)
-    return idx
-end
-
-
+_convert_idx(idx::Symbol,S::GamsSet,GU::GamsUniverse) = [S.index[i] for i∈GU[idx]]
+_convert_idx(idx::Vector{Symbol},S::GamsSet,GU::GamsUniverse) = length(idx)==1 ? S.index[idx[1]] : [S.index[i] for i∈idx]
+_convert_idx(idx::Colon,S::GamsSet,GU::GamsUniverse) = [S.index[i] for i∈S]
+_convert_idx(idx,S::GamsSet,GU::GamsUniverse) = idx
 
 """
 There are several choices for idx
@@ -158,7 +124,9 @@ There are several choices for idx
     5. GamsSet -> Similar to 2, except giving an explicit GamsSet rather than its symbol.
 """
 function Base.getindex(P::GamsParameter,idx...)
-    idx = map(x->_convert_idx(P,x[1],x[2]),enumerate(idx))
+    GU = P.universe
+    sets = [GU[s] for s∈domain(P)]
+    idx = map((x,S)->_convert_idx(x,S,GU),idx,sets)
     return P.value[idx...]
 end
 
@@ -174,9 +142,11 @@ function Base.iterate(iter::GamsParameter, state)
 end
 
 
-function Base.setindex!(X::GamsParameter,value,idx...)
-    new_index = map(x->_convert_idx(X,x[1],x[2]),enumerate(idx))
-    X.value[new_index...] = value
+function Base.setindex!(P::GamsParameter,value,idx...)
+    GU = P.universe
+    sets = [GU[s] for s∈domain(P)]
+    idx = map((x,S)->_convert_idx(x,S,GU),idx,sets)
+    P.value[idx...] = value
 end
 
 function Base.length(X::GamsParameter)
