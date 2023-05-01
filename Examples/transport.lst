@@ -1,0 +1,304 @@
+GAMS 41.1.0  1682d454 Oct 28, 2022          WEX-WEI x86 64bit/MS Windows - 04/24/23 09:50:06 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  Set
+   2     i 'canning plants' / seattle,  san-diego /
+   3     j 'markets'        / new-york, chicago, topeka /;
+   4   
+   5  Parameter
+   6     a(i)    'capacity of plant i in cases'
+   7             / seattle    350
+   8               san-diego  600 /
+   9   
+  10     b(j)    'demand at market j in cases'
+  11             / new-york   325
+  12               chicago    300
+  13               topeka     275 /
+  14     esub(j) 'price elasticity of demand (at prices equal to unity)'
+  15             / new-york   1.5
+  16               chicago    1.2
+  17               topeka     2.0 /;
+  18   
+  19  Table d(i,j) 'distance in thousands of miles'
+  20                new-york  chicago  topeka
+  21     seattle         2.5      1.7     1.8
+  22     san-diego       2.5      1.8     1.4;
+  23   
+  24  Scalar f 'freight in dollars per case per thousand miles' / 90 /;
+  25   
+  26  Parameter c(i,j) 'transport cost in thousands of dollars per case';
+  27  c(i,j) = f*d(i,j)/1000;
+  28   
+  29  Parameter pbar(j) 'reference price at demand node j';
+  30   
+  31  Positive Variable
+  32     w(i)        'shadow price at supply node i'
+  33     p(j)        'shadow price at demand node j'
+  34     x(i,j)      'shipment quantities in cases';
+  35   
+  36  Equation
+  37     supply(i)   'supply limit at plant i'
+  38     fxdemand(j) 'fixed demand at market j'
+  39     prdemand(j) 'price-responsive demand at market j'
+  40     profit(i,j) 'zero profit conditions';
+  41   
+  42  profit(i,j)..  w(i) + c(i,j)  =g= p(j);
+  43   
+  44  supply(i)..    a(i) =g= sum(j, x(i,j));
+  45   
+  46  fxdemand(j)..  sum(i, x(i,j)) =g= b(j);
+  47   
+  48  prdemand(j)..  sum(i, x(i,j)) =g= b(j)*(pbar(j)/p(j))**esub(j);
+  49   
+  50  * declare models including specification of equation-variable association:
+  51  Model
+  52     fixedqty / profit.x, supply.w, fxdemand.p /
+  53     equilqty / profit.x, supply.w, prdemand.p /;
+  54   
+  55  * initial estimate:
+  56  *p.l(j) = 1;
+  57  *w.l(i) = 1;
+  58   
+  59  *x.l(i,j) = 1;
+  60   
+  61  Parameter report(*,*,*) 'summary report';
+  62   
+  63  solve fixedqty using mcp;
+
+
+COMPILATION TIME     =        0.000 SECONDS      3 MB  41.1.0 1682d454 WEX-WEI
+GAMS 41.1.0  1682d454 Oct 28, 2022          WEX-WEI x86 64bit/MS Windows - 04/24/23 09:50:06 Page 2
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Equation Listing    SOLVE fixedqty Using MCP From line 63
+
+
+---- profit  =G=  zero profit conditions
+
+profit(seattle,new-york)..  w(seattle) - p(new-york) =G= -0.225 ; (LHS = 0)
+     
+profit(seattle,chicago)..  w(seattle) - p(chicago) =G= -0.153 ; (LHS = 0)
+     
+profit(seattle,topeka)..  w(seattle) - p(topeka) =G= -0.162 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- supply  =G=  supply limit at plant i
+
+supply(seattle)..  - x(seattle,new-york) - x(seattle,chicago) - x(seattle,topeka) =G= -350 ; (LHS = 0)
+     
+supply(san-diego)..  - x(san-diego,new-york) - x(san-diego,chicago) - x(san-diego,topeka) =G= -600 ; (LHS = 0)
+     
+
+---- fxdemand  =G=  fixed demand at market j
+
+fxdemand(new-york)..  x(seattle,new-york) + x(san-diego,new-york) =G= 325 ; (LHS = 0, INFES = 325 ****)
+     
+fxdemand(chicago)..  x(seattle,chicago) + x(san-diego,chicago) =G= 300 ; (LHS = 0, INFES = 300 ****)
+     
+fxdemand(topeka)..  x(seattle,topeka) + x(san-diego,topeka) =G= 275 ; (LHS = 0, INFES = 275 ****)
+     
+GAMS 41.1.0  1682d454 Oct 28, 2022          WEX-WEI x86 64bit/MS Windows - 04/24/23 09:50:06 Page 3
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Column Listing      SOLVE fixedqty Using MCP From line 63
+
+
+---- w  shadow price at supply node i
+
+w(seattle)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       profit(seattle,new-york)
+        1       profit(seattle,chicago)
+        1       profit(seattle,topeka)
+
+w(san-diego)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       profit(san-diego,new-york)
+        1       profit(san-diego,chicago)
+        1       profit(san-diego,topeka)
+
+
+---- p  shadow price at demand node j
+
+p(new-york)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       profit(seattle,new-york)
+       -1       profit(san-diego,new-york)
+
+p(chicago)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       profit(seattle,chicago)
+       -1       profit(san-diego,chicago)
+
+p(topeka)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       profit(seattle,topeka)
+       -1       profit(san-diego,topeka)
+
+
+---- x  shipment quantities in cases
+
+x(seattle,new-york)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       supply(seattle)
+        1       fxdemand(new-york)
+
+x(seattle,chicago)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       supply(seattle)
+        1       fxdemand(chicago)
+
+x(seattle,topeka)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       supply(seattle)
+        1       fxdemand(topeka)
+
+REMAINING 3 ENTRIES SKIPPED
+GAMS 41.1.0  1682d454 Oct 28, 2022          WEX-WEI x86 64bit/MS Windows - 04/24/23 09:50:06 Page 4
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Range Statistics    SOLVE fixedqty Using MCP From line 63
+
+
+RANGE STATISTICS (ABSOLUTE NON-ZERO FINITE VALUES)
+
+RHS       [min, max] : [ 1.260E-01, 6.000E+02]
+Bound     [min, max] : [        NA,        NA] - Zero values observed as well
+Matrix    [min, max] : [ 1.000E+00, 1.000E+00]
+
+GAMS 41.1.0  1682d454 Oct 28, 2022          WEX-WEI x86 64bit/MS Windows - 04/24/23 09:50:06 Page 5
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE fixedqty Using MCP From line 63
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           11
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           11
+NON ZERO ELEMENTS            24     NON LINEAR N-Z              0
+CODE LENGTH                   0     CONSTANT POOL              16
+
+
+GENERATION TIME      =        0.000 SECONDS      4 MB  41.1.0 1682d454 WEX-WEI
+GAMS 41.1.0  1682d454 Oct 28, 2022          WEX-WEI x86 64bit/MS Windows - 04/24/23 09:50:06 Page 6
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE fixedqty Using MCP From line 63
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   fixedqty            
+     TYPE    MCP                 
+     SOLVER  PATH                FROM LINE  63
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      1 Optimal
+
+ RESOURCE USAGE, LIMIT          0.016 10000000000.000
+ ITERATION COUNT, LIMIT        30    2147483647
+ EVALUATION ERRORS              0             0
+11 row/cols, 24 non-zeros, 19.83% dense.
+
+Path 5.0.04 (Fri Oct 28 19:11:36 2022)
+Written by Todd Munson, Steven Dirkse, Youngdae Kim, and Michael Ferris
+
+INITIAL POINT STATISTICS
+Maximum of X. . . . . . . . . .  0.0000e+00 var: (x(seattle,new-york))
+Maximum of F. . . . . . . . . .  6.0000e+02 eqn: (supply(san-diego))
+Maximum of Grad F . . . . . . .  1.0000e+00 eqn: (supply(seattle))
+                                            var: (x(seattle,new-york))
+
+INITIAL JACOBIAN NORM STATISTICS
+Maximum Row Norm. . . . . . . .  3.0000e+00 eqn: (supply(seattle))
+Minimum Row Norm. . . . . . . .  2.0000e+00 eqn: (profit(seattle,new-york))
+Maximum Column Norm . . . . . .  3.0000e+00 var: (w(seattle))
+Minimum Column Norm . . . . . .  2.0000e+00 var: (x(seattle,new-york))
+
+FINAL STATISTICS
+Inf-Norm of Complementarity . .  1.5198e-08 eqn: (profit(seattle,chicago))
+Inf-Norm of Normal Map. . . . .  6.5961e-08 eqn: (fxdemand(chicago))
+Inf-Norm of Minimum Map . . . .  6.5961e-08 eqn: (fxdemand(chicago))
+Inf-Norm of Fischer Function. .  6.5961e-08 eqn: (fxdemand(chicago))
+Inf-Norm of Grad Fischer Fcn. .  6.5961e-08 eqn: (profit(seattle,chicago))
+Two-Norm of Grad Fischer Fcn. .  9.8329e-08
+
+FINAL POINT STATISTICS
+Maximum of X. . . . . . . . . .  3.0000e+02 var: (x(seattle,chicago))
+Maximum of F. . . . . . . . . .  5.0000e+01 eqn: (supply(san-diego))
+Maximum of Grad F . . . . . . .  1.0000e+00 eqn: (supply(seattle))
+                                            var: (x(seattle,new-york))
+
+
+---- EQU profit  zero profit conditions
+
+                          LOWER          LEVEL          UPPER         MARGINAL
+
+seattle  .new-york        -0.2250        -0.2250        +INF           50.0000      
+seattle  .chicago         -0.1530        -0.1530        +INF          300.0000      
+seattle  .topeka          -0.1620        -0.1260        +INF             .          
+san-diego.new-york        -0.2250        -0.2250        +INF          275.0000      
+san-diego.chicago         -0.1620        -0.1530        +INF             .          
+san-diego.topeka          -0.1260        -0.1260        +INF          275.0000      
+
+---- EQU supply  supply limit at plant i
+
+                 LOWER          LEVEL          UPPER         MARGINAL
+
+seattle        -350.0000      -350.0000        +INF             .          
+san-diego      -600.0000      -550.0000        +INF             .          
+
+---- EQU fxdemand  fixed demand at market j
+
+                LOWER          LEVEL          UPPER         MARGINAL
+
+new-york       325.0000       325.0000        +INF            0.2250      
+chicago        300.0000       300.0000        +INF            0.1530      
+topeka         275.0000       275.0000        +INF            0.1260      
+
+---- VAR w  shadow price at supply node i
+
+                 LOWER          LEVEL          UPPER         MARGINAL
+
+seattle            .              .            +INF      4.5930772E-6      
+san-diego          .              .            +INF           50.0000      
+
+---- VAR p  shadow price at demand node j
+
+                LOWER          LEVEL          UPPER         MARGINAL
+
+new-york          .             0.2250        +INF      2.1987034E-8      
+chicago           .             0.1530        +INF      6.5961217E-8      
+topeka            .             0.1260        +INF             .          
+
+---- VAR x  shipment quantities in cases
+
+                          LOWER          LEVEL          UPPER         MARGINAL
+
+seattle  .new-york          .            50.0000        +INF      -3.32234E-13      
+seattle  .chicago           .           300.0000        +INF      5.066111E-11      
+seattle  .topeka            .              .            +INF            0.0360      
+san-diego.new-york          .           275.0000        +INF      -3.32234E-13      
+san-diego.chicago           .              .            +INF            0.0090      
+san-diego.topeka            .           275.0000        +INF             .          
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+                             0  REDEFINED
+                             0     ERRORS
+
+
+EXECUTION TIME       =        0.047 SECONDS      4 MB  41.1.0 1682d454 WEX-WEI
+
+
+USER: Small MUD - 5 User License                     G220228|0002AO-GEN
+      University of Wisconsin-Madison, Agricultural & Applied EconDC289
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      C:\Users\mphillipson\.julia\dev\GamsStructure.jl\Examples\transport.gms
+Output     C:\Users\mphillipson\.julia\dev\GamsStructure.jl\Examples\transport.lst

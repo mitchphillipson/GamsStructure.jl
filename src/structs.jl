@@ -20,9 +20,10 @@ Container to hold GamsElements.
 struct GamsSet
     elements::Vector{GamsElement}
     description::String
-    index::Dict{Symbol,Int}
+    index::NamedTuple#Dict{Symbol,Int}
     aliases::Vector{Symbol}
-    GamsSet(e,description = "",aliases= []) = new(e,description,Dict(b=>a for (a,b) in enumerate([i.name for i in e])),aliases)
+    #GamsSet(e,description = "",aliases= []) = new(e,description,Dict(b=>a for (a,b) in enumerate([i.name for i in e])),aliases)
+    GamsSet(e,description = "",aliases= []) = new(e,description,NamedTuple(reverse.(enumerate([i.name for i∈e])))  ,aliases)
 end
 
 

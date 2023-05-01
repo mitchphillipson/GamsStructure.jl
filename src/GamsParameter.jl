@@ -104,7 +104,9 @@ macro GamsParameters(GU,base_path,block)
     return code
 end
 
-
+function domain(P::GamsParameter)
+    return P.sets
+end
 
 
 function _convert_idx(P::GamsParameter,i::Int,idx::Colon)
@@ -120,14 +122,12 @@ function _convert_idx(P::GamsParameter,i::Int,idx::Symbol)
     parent_set = GU[s]
     set = parent_set[GU[idx]]
     #@assert (idx == s || idx∈set.aliases) "Index $idx at location $i does not match parameter domain $s or an alias $(set.aliases)"
-
     return _convert_idx(P,i,[e for e in set])
 end
 
 function _convert_idx(P::GamsParameter,i::Int,idx::Vector{Symbol})
     set_index = P.universe[P.sets[i]].index
-    set = [set_index[e] for e in idx]
-    #indexin(idx,[e for e in GU[P.sets[i]]])#findall(x-> x∈idx, GU[P.sets[i]])
+    set = get.(Ref(set_index),idx,missing)#[set_index[e] for e in idx]
     if length(set) == 1
         return set[1]
     end
@@ -135,8 +135,6 @@ function _convert_idx(P::GamsParameter,i::Int,idx::Vector{Symbol})
 end
 
 function _convert_idx(P::GamsParameter,i::Int,idx::Vector{Bool})
-    #GU = P.universe
-    #set = P.sets[i]
     return idx
 end
 
