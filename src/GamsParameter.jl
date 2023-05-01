@@ -111,6 +111,7 @@ end
 
 _convert_idx(idx::Symbol,S::GamsSet,GU::GamsUniverse) = [S.index[i] for i∈GU[idx]]
 _convert_idx(idx::Vector{Symbol},S::GamsSet,GU::GamsUniverse) = length(idx)==1 ? S.index[idx[1]] : [S.index[i] for i∈idx]
+_convert_idx(idx::GamsSet,S::GamsSet,GU::GamsUniverse) = [S.index[i] for i∈idx]
 _convert_idx(idx::Colon,S::GamsSet,GU::GamsUniverse) = [S.index[i] for i∈S]
 _convert_idx(idx,S::GamsSet,GU::GamsUniverse) = idx
 
