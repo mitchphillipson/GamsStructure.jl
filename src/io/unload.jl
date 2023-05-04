@@ -6,28 +6,33 @@ function unload(S::GamsSet,path,set_name)
 end
 
 
-function unload(GU::GamsUniverse,P::GamsParameter,path,parm_name)
+function unload(GU::GamsUniverse,P::GamsParameter,path,parm_name;raw_text=true)
 
-    out = Vector{Vector{Any}}()
+    if raw_text
+        out = Vector{Vector{Any}}()
 
-    tmp = [string(s) for s in P.sets]
-    push!(tmp,"value")
-    push!(out,tmp)
-
-    axes = [[e for e∈GU[s]] for s∈P.sets]
-    for idx ∈ Iterators.product(axes...)
-        tmp = Vector{Any}()
-        append!(tmp,[idx...])
-        ind = [[i] for i∈idx]
-        push!(tmp,P[ind...])
+        tmp = [string(s) for s in P.sets]
+        push!(tmp,"value")
         push!(out,tmp)
-    end
 
-    writedlm("$path/$parm_name.csv",out,",")
+        axes = [[e for e∈GU[s]] for s∈P.sets]
+        for idx ∈ Iterators.product(axes...)
+            tmp = Vector{Any}()
+            append!(tmp,[idx...])
+            ind = [[i] for i∈idx]
+            push!(tmp,P[ind...])
+            push!(out,tmp)
+        end
+
+        writedlm("$path/$parm_name.csv",out,",")
+
+    else
+        h5write("$path/parameters.h5",String(parm_name),P.value)
+    end
 end
 
 
-function unload(GU::GamsUniverse,path;to_unload = [])
+function unload(GU::GamsUniverse,path;to_unload = [],raw_text = true)
     info = Dict()
     info[:set] = Dict()
     info[:parm] = Dict()
@@ -46,7 +51,7 @@ function unload(GU::GamsUniverse,path;to_unload = [])
 
     for (key,parm) in GU.parameters
         if to_unload == [] || key∈to_unload
-            unload(GU,parm,path,key)
+            unload(GU,parm,path,key;raw_text=raw_text)
             cols = collect(1:length(parm.sets))
             info[:parm][key] = [parm.sets,parm.description,cols]
         end

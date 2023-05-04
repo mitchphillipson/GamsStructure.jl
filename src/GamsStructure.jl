@@ -8,6 +8,8 @@ using MacroTools
 using JSON
 using DelimitedFiles
 
+using HDF5
+
 export GamsElement, GamsSet, GamsParameter, @GamsSets,
         @GamsParameters,@GamsDomainSets,GamsDomainSet,
         GamsUniverse,add_set,add_parameter,alias,GamsScalar,
