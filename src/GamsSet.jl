@@ -1,16 +1,33 @@
+"""
+    GamsSet(x::Tuple...;description = "")
 
-
+GamsSet constructor for a tuple of the form (name,description) which
+will be made into GamsElements
+"""
 function GamsSet(x::Tuple...;description = "")
     return GamsSet([GamsElement(a,b) for (a,b) in x],description)
 end
 
+"""
+    GamsSet(x::Vector{Tuple{Symbol,String}};description = "")
+
+GamsSet constructor for a vector of tuples of the form (name,description) which
+will be made into GamsElements
+"""
 function GamsSet(x::Vector{Tuple{Symbol,String}};description = "")
     return GamsSet([GamsElement(a,b) for (a,b) in x],description)
 end
 
+"""
+    GamsSet(e::Vector{Symbol};description = "")   
+
+GamsSet constructor for a tuple of symbols which
+will be made into GamsElements with empty description.
+"""
 function GamsSet(e::Vector{Symbol};description = "")   
     return GamsSet([GamsElement(i,"") for i∈e],description)
 end
+
 """
     GamsSet(base_path::String,set_name::Symbol;description = "",csv_description = true))
 
@@ -130,6 +147,20 @@ function Base.length(X::GamsSet)
     return length(_active_elements(X))
 end
 
+
+"""
+    @GamsSet(GU,set_name,description,block)
+
+Macro to create a GamsSet. 
+
+```
+@GamsSet(GU,:i,"example set",begin
+    element_1, "Description 1"
+    element_2, "Description 2"
+    element_3, "Description 3"
+end)
+```
+"""
 macro GamsSet(GU,set_name,description,block)
     GU = esc(GU)
     set_name = esc(set_name)
@@ -152,7 +183,18 @@ macro GamsSet(GU,set_name,description,block)
     return :(add_set($GU,$set_name,GamsSet($elements,$description)))
 end
 
+"""
+    @GamsSets(GU,base_path,block)
 
+Load a collection of sets from a file. This will search for 
+the file `base_path\\name.csv` where name is the first
+entry of each line in the block.
+
+@GamsSets(GU,"sets",begin
+    :i, "Set 1"
+    :j, "Set 2"
+end)
+"""
 macro GamsSets(GU,base_path,block)
     GU = esc(GU)
     base_path = esc(base_path)

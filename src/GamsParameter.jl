@@ -4,7 +4,6 @@
 
 Load a GamsParameter from a file. 
 """
-
 function GamsParameter(base_path::String,parm_name::Symbol,sets::Tuple{Vararg{Symbol}},GU::GamsUniverse;description = "")
     df = CSV.File("$base_path/$parm_name.csv",stringtype=String,silencewarnings=true)
     s = [GU[c] for c in sets]
@@ -51,6 +50,18 @@ function GamsParameter(base_path::String,parm_name::Symbol,sets::Tuple{Vararg{Sy
     return out
 end
 
+""" 
+    @GamsParameters(GU,block)
+
+Create many empty parameters
+
+```
+@GamsParameters(GU,begin
+    :P, (:set_1,:set_2), "Description 1"
+    :X, (:set_1,), "Description 2"
+end)
+```
+"""
 macro GamsParameters(GU,block)
     GU = esc(GU)
     if !(isa(block,Expr) && block.head == :block)
@@ -72,7 +83,19 @@ macro GamsParameters(GU,block)
     return code
 end
 
+""" 
+    @GamsParameters(GU,base_path,block)
 
+Load parameters from a file. This will search `base_path\\name.csv`.
+
+
+```
+@GamsParameters(GU,begin
+    :P, (:set_1,:set_2), "Description 1"
+    :X, (:set_1,), "Description 2"
+end)
+```
+"""
 macro GamsParameters(GU,base_path,block)
     GU = esc(GU)
     base_path = esc(base_path)
@@ -104,6 +127,12 @@ macro GamsParameters(GU,base_path,block)
     return code
 end
 
+"""
+    domain(P::GamsParameter)
+
+Return the domain of the paramter P in the form of a vector of
+symbols.
+"""
 function domain(P::GamsParameter)
     return P.sets
 end

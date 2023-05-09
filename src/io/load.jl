@@ -1,3 +1,20 @@
+
+"""
+    load_universe(path::String;
+                  to_load = [],
+                  nGU::GamsUniverse = GamsUniverse(),
+                  raw_text=true)
+
+Load a universe from the path.
+
+`path` - Universe location
+
+`to_load` - Load specific sets and parameters
+
+`nGU` - Add sets and parameters to an existing universe
+
+`raw_text` - Denote if a universe is saved as raw_text or in a binary format.
+"""
 function load_universe(path::String;to_load = [],nGU::GamsUniverse = GamsUniverse(),raw_text=true)
 
     #nGU = GamsUniverse()
