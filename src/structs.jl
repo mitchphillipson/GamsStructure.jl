@@ -1,7 +1,8 @@
 """
-    GamsElement(Name, Description, active = true)
+    GamsElement(name::union{Symbol,Tuple}, description::String="", active::Bool = true)
 
 A base struct for GamsSets. Each Name will be converted to a symbol. 
+The `active` keyword denotes if the element should appear in sets.
 """
 mutable struct GamsElement
     name::Union{Symbol,Tuple}
@@ -27,7 +28,23 @@ struct GamsSet
 end
 
 
+"""
+    GamsParameter{N}(GU,sets::Tuple{Vararg{Symbol}},value::Array{Float64,N},description::String)
 
+Container to hold parameters.
+
+Parameters can be indexed either by set name
+
+P[:set_1,:set_2]
+
+or by list of element names
+
+P[[:element_1,:element_2],[:e_1,:e_2]]
+
+or a mix of both
+
+P[:set_1,[:e_1]]
+"""
 struct GamsParameter{N}
     universe
     sets::Tuple{Vararg{Symbol}}
@@ -44,6 +61,23 @@ mutable struct GamsScalar
     GamsScalar(scalar::Number;description = "") = new(scalar,description)
 end
 
+
+"""
+    GamsUniverse(sets::Dict{Symbol,GamsSet}
+                parameters::Dict{Symbol,GamsParameter}
+                scalars::Dict{Symbol,GamsScalar})
+
+Note: scalars are going to be deprecated soon.
+
+Access objects like an array,
+```
+GU[:X]
+```
+This will return the X object, either a set or parameter. The search
+order is sets first, then parameters.
+
+Print a universe to see it's members and their descriptions.
+"""
 struct GamsUniverse
     sets::Dict{Symbol,GamsSet}
     parameters::Dict{Symbol,GamsParameter}

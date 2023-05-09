@@ -5,7 +5,6 @@ function unload(S::GamsSet,path,set_name)
     writedlm("$path/$set_name.csv",out,",")
 end
 
-
 function unload(GU::GamsUniverse,P::GamsParameter,path,parm_name;raw_text=true)
 
     if raw_text
@@ -32,6 +31,22 @@ function unload(GU::GamsUniverse,P::GamsParameter,path,parm_name;raw_text=true)
 end
 
 
+"""
+    unload(GU::GamsUniverse,
+           path;
+           to_unload = [],
+           raw_text = true)
+
+Save a universe from the path.
+
+`GU` - The universe to save
+
+`path` - Universe location
+
+`to_unload` - Unload specific sets and parameters
+
+`raw_text` - Denote if a universe is saved as raw_text or in a binary format.
+"""
 function unload(GU::GamsUniverse,path;to_unload = [],raw_text = true)
     info = Dict()
     info[:set] = Dict()

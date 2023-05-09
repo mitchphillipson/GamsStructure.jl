@@ -1,5 +1,8 @@
 # GamsStructure.jl
  
+
+[Very terse documentation](https://windc.wisc.edu/GamsStructure_Documentation/)
+
 Current Issues:
 
 1. ~~Getting indices in parameters is very slow, like 10X slower than a regular array. I think the issue
