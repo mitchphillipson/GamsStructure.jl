@@ -4,6 +4,9 @@ function GamsSet(x::Tuple...;description = "")
     return GamsSet([GamsElement(a,b) for (a,b) in x],description)
 end
 
+function GamsSet(x::Vector{Tuple{Symbol,String}};description = "")
+    return GamsSet([GamsElement(a,b) for (a,b) in x],description)
+end
 
 function GamsSet(e::Vector{Symbol};description = "")   
     return GamsSet([GamsElement(i,"") for i∈e],description)
