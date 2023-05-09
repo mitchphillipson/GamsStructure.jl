@@ -1,4 +1,4 @@
-function load_universe(path::String;to_load = [],nGU::GamsUniverse = GamsUniverse())
+function load_universe(path::String;to_load = [],nGU::GamsUniverse = GamsUniverse(),raw_text=true)
 
     #nGU = GamsUniverse()
 
@@ -18,14 +18,26 @@ function load_universe(path::String;to_load = [],nGU::GamsUniverse = GamsUnivers
         end
     end
 
-
-    for (key,parm) in info["parm"]
-        key = Symbol(key)
-        if to_load == [] || key ∈ to_load
-            sets,desc,cols = parm
-            cols = [e for e in cols]
-            sets = Tuple([Symbol(e) for e in sets])
-            add_parameter(nGU,key,GamsParameter(path,key,sets,nGU,cols,description = desc))
+    if raw_text
+        for (key,parm) in info["parm"]
+            key = Symbol(key)
+            if to_load == [] || key ∈ to_load
+                sets,desc,cols = parm
+                cols = [e for e in cols]
+                sets = Tuple([Symbol(e) for e in sets])
+                add_parameter(nGU,key,GamsParameter(path,key,sets,nGU,cols,description = desc))
+            end
+        end
+    else
+        parameters = h5open("$path/parameters.h5","r")
+        for (key,parm) in info["parm"]
+            name = Symbol(key)
+            if to_load == [] || name ∈ to_load
+                sets,desc,cols = parm
+                sets = Tuple([Symbol(e) for e in sets])
+                add_parameter(nGU,name,GamsParameter(nGU,sets,desc))
+                nGU[name][sets...] = read(parameters[key])
+            end
         end
     end
 
