@@ -1,1 +1,1 @@
-{"parm":{"p":[["i","j"],"test parm"]},"scalar":{},"set":{"j":"Test set","i":"Test set"}}
+{"parm":{"p":[["i","j"],"test parm",[1,2]]},"scalar":{},"set":{"j":["Test Set",["i"]],"i":["Test Set",["j"]]}}
