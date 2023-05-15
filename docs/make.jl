@@ -22,3 +22,11 @@ makedocs(
     strict = true,
     pages = _PAGES
 )
+
+
+deploydocs(
+    repo = "github.com/mitchphillipson/GamsStructure.jl",
+    target = "build",
+    branch = "gh-pages",
+ #   versions = ["stable" => "v^", "v#.#" ],
+)
