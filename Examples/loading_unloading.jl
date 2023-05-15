@@ -7,7 +7,6 @@ Step 1: Set up a small dataset.
 """
 GU = GamsUniverse()
 
-
 @GamsSet(GU,:i,"This is only a test",begin
     a, "a"
     b, "b"
