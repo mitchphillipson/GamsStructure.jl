@@ -22,7 +22,6 @@ alias(GU,:i,:j,:t,:g) #:j, :t, :g are aliases of :i.
 end)
 
 
-
 GU[:x][[:a],[:a]] = 5
 GU[:x][[:a],[:b]] = -9
 GU[:x][[:b],[:a]] = pi
