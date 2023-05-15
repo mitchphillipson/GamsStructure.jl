@@ -1,7 +1,7 @@
 # GamsStructure.jl
  
 
-[Very terse documentation]([https://windc.wisc.edu/GamsStructure_Documentation/](https://mitchphillipson.github.io/GamsStructure.jl/dev/))
+[Very terse documentation](https://mitchphillipson.github.io/GamsStructure.jl/dev/)
 
 
 To Do:
