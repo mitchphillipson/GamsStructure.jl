@@ -1,3 +1,8 @@
+import Pkg
+Pkg.add("Test")
+
+
+
 using Test
 using GamsStructure
 
