@@ -17,19 +17,11 @@ Load a universe from the path.
 """
 function load_universe(path::String;to_load = [],nGU::GamsUniverse = GamsUniverse(),raw_text=true)
 
-    #nGU = GamsUniverse()
-
-    #info = Dict()
-     #do f
-        #global info
     info=JSON.parse(open("$path/gams_info.json", "r"))  # parse and transform data
-    #end
-
 
     for (key,(desc,aliases)) in info["set"]
         key = Symbol(key)
         aliases = [Symbol(s) for s∈aliases if s∈keys(info["set"]) && (to_load == [] || Symbol(s)∈to_load)]
-        
         if to_load == [] || key ∈ to_load
             add_set(nGU,key,GamsSet(path, key, description = desc, aliases=aliases))
         end
@@ -37,12 +29,14 @@ function load_universe(path::String;to_load = [],nGU::GamsUniverse = GamsUnivers
 
     if raw_text
         for (key,parm) in info["parm"]
-            key = Symbol(key)
+            name = Symbol(key)
             if to_load == [] || key ∈ to_load
                 sets,desc,cols = parm
                 cols = [e for e in cols]
-                sets = Tuple([Symbol(e) for e in sets])
-                add_parameter(nGU,key,GamsParameter(path,key,sets,nGU,cols,description = desc))
+                domain = Tuple([Symbol(e) for e in sets])
+                parm_path = joinpath(path,"$name.csv")
+                load_parameter!(nGU,parm_path,name,domain;description = desc,columns=cols)
+                #add_parameter(nGU,key,GamsParameter(path,key,sets,nGU,cols,description = desc))
             end
         end
     else
@@ -86,4 +80,93 @@ end
 
 function load_universe!(GU::GamsUniverse,path::String;to_load = [])
     load_universe(path,to_load = to_load,nGU = GU)
+end
+
+
+
+
+"""
+    load_parameter(GU::GamsUniverse,
+                   path_to_parameter::String,
+                   domain::Tuple{Vararg{Symbol}};
+                   description::String = "",
+                   columns::Union{Vector{Int},Missing} = missing,
+                   value_name = :value
+                   )
+
+Load and return a parameter from a CSV file.
+
+`GU` - Parent universe. The parameter will not be added to the universe
+
+`path_to_parameter` - Where the parameter lives
+
+`domain` - A tuple of the names of the domain sets
+
+`description` - A description of the parameter. Defaults to empty string
+
+`columns` - If the names in the CSV don't match the set names, use this to specify which 
+columns correspond to the sets.
+
+`value_name` - The name of the column where the values live. Can also be an integer.
+
+This function requires a specific format of CSV file:
+
+|set_1|set_2|value|
+|---|---|---|
+|...|...|...|
+
+By default, the function expects the columns names in the CSV to match the set names,
+however, this can be modified using the columns parameter. 
+
+"""
+function load_parameter(GU::GamsUniverse,
+                        path_to_parameter::String,
+                        domain::Tuple{Vararg{Symbol}};
+                        description::String = "",
+                        columns::Union{Vector{Int},Missing} = missing,
+                        value_name = :value
+                        )
+
+    df = CSV.File("$path_to_parameter",stringtype=String,silencewarnings=true)
+    out = GamsParameter(GU,domain,description = description)
+    sets = domain
+
+    #If columns is set, load the data directly from the columns
+    if !ismissing(columns)
+        sets = columns
+    end
+
+    for row in df
+        elm = [[Symbol(row[c])] for c in sets]
+        out[elm...] = row[value_name]
+    end
+
+    return out
+end
+    
+"""
+    load_parameter!(GU::GamsUniverse,
+                    path_to_parameter::String,
+                    name::Symbol,
+                    domain::Tuple{Vararg{Symbol}};
+                    description::String = "",
+                    columns::Union{Vector{Int},Missing} = missing,
+                    value_name = :value
+                    )
+
+Identical to `load_parameter` except it includes the parameter in GU.
+"""
+function load_parameter!(GU::GamsUniverse,
+                        path_to_parameter::String,
+                        name::Symbol,
+                        domain::Tuple{Vararg{Symbol}};
+                        description::String = "",
+                        columns::Union{Vector{Int},Missing} = missing,
+                        value_name = :value
+                        )
+
+    P = load_parameter(GU,path_to_parameter,domain; description = description,columns=columns,value_name=value_name)
+
+    add_parameter(GU,name,P)
+
 end

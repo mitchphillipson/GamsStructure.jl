@@ -10,12 +10,21 @@ using DelimitedFiles
 
 using HDF5
 
-export GamsElement, GamsSet, GamsParameter, @GamsSets,
-        @GamsParameters,@GamsDomainSets,GamsDomainSet,
-        GamsUniverse,add_set,add_parameter,alias,GamsScalar,
-        @GamsScalars,add_scalar,scalar,unload,load_universe,
-        load_universe!,@GamsSet,sets,parameters,domain
+export GamsElement
 
+
+export GamsSet, @GamsSets,alias,@GamsSet,@GamsDomainSets,GamsDomainSet
+
+export  GamsParameter,@create_parameters,
+        load_parameter,load_parameter!,@load_parameters!,domain
+
+export GamsUniverse,add_set,add_parameter,unload,load_universe,
+        load_universe!,sets,parameters
+        
+
+#GamsScalar,
+#        @GamsScalars
+#add_scalar,scalar,
 
 
 
@@ -28,5 +37,6 @@ include("GamsScalar.jl")
 
 include("io/unload.jl")
 include("io/load.jl")
+include("io/macros.jl")
 
 end # module GamsStructure
