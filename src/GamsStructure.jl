@@ -13,7 +13,7 @@ using HDF5
 export GamsElement
 
 
-export GamsSet, @GamsSets,alias,@GamsSet,@GamsDomainSets,GamsDomainSet,
+export GamsSet, alias,@GamsSet,@GamsDomainSets,GamsDomainSet,
         load_set,load_set!,@load_sets!
 
 export  GamsParameter,@create_parameters,

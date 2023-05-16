@@ -29,34 +29,6 @@ function GamsSet(e::Vector{Symbol};description = "")
 end
 
 """
-    GamsSet(base_path::String,set_name::Symbol;description = "",csv_description = true))
-
-Load a GamsSet from a CSV file at location base_path/set_name.csv. 
-
-Sets must be one dimensional (at least for now) and it's assumed the first column are the elements
-and the second column is the description. If the second column is missing, the description is ""
-
-Note: csv_description currently does nothing. 
-"""
-function GamsSet(base_path::String,set_name::Symbol;description = "",csv_description = true,aliases = [])
-    F = CSV.File("$base_path/$set_name.csv",stringtype=String,silencewarnings=true)
-	
-    out = []
-    cols = propertynames(F)
-    for row in F
-        element = row[1]
-        desc = ""
-        if length(cols)==2 && !(ismissing(row[2]))
-            desc = row[2]
-        end
-        push!(out,GamsElement(element,desc))
-    end
-
-    return GamsSet(out,description,aliases)    
-end
-
-
-"""
     GamsDomainSet(base_path::String,set_info::Tuple;description = "")
 
 Load data from a single column of a CSV into a GamsSet.
@@ -75,16 +47,7 @@ function GamsDomainSet(base_path::String,parm_name::Symbol,column::Int;descripti
 end
 
 
-function GamsSet(base_path::String,set_info::Vector)
-    if length(set_info) == 1
-        return GamsSet(base_path,set_info[1])
-    elseif length(set_info) == 2
-        return GamsSet(base_path,set_info[1],description = set_info[2])
-    elseif length(set_info) == 3
-        return GamsSet(base_path,set_info[1],description = set_info[2],csv_description = set_info[3])
-    end
-    #return GamsSet(base_path,set_info...)
-end
+
 
 
 _active_elements(S::GamsSet) = [e for e in S.elements if e.active]
@@ -183,47 +146,7 @@ macro GamsSet(GU,set_name,description,block)
     return :(add_set($GU,$set_name,GamsSet($elements,$description)))
 end
 
-"""
-    @GamsSets(GU,base_path,block)
 
-Load a collection of sets from a file. This will search for 
-the file `base_path\\name.csv` where name is the first
-entry of each line in the block.
-
-@GamsSets(GU,"sets",begin
-    :i, "Set 1"
-    :j, "Set 2"
-end)
-"""
-macro GamsSets(GU,base_path,block)
-    GU = esc(GU)
-    base_path = esc(base_path)
-    if !(isa(block,Expr) && block.head == :block)
-        error("Problem")
-    end
-    code = quote end
-    for it in block.args
-        if isexpr(it, :tuple)
-            set_name = it.args[1]
-            desc = ""
-            if length(it.args)>=2
-                desc = it.args[2]
-            end
-            csv_desc = true
-            if length(it.args)>=3
-                csv_desc = it.args[3]
-            end
-            push!(code.args,:($add_set($GU,$set_name, GamsSet(
-                                $base_path,
-                                $set_name,
-                                description = $desc,
-                                csv_description = $csv_desc)
-                            ))
-            )
-        end
-    end
-    return code
-end
 
 macro GamsDomainSets(GU,base_path,block)
     GU = esc(GU)
