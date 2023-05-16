@@ -8,7 +8,7 @@
     
     alias(GU,:i,:j)
     
-    @GamsParameters(GU,begin
+    @create_parameters(GU,begin
         :p, (:i,:j), "test parm"
     end)
     
