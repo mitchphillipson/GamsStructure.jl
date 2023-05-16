@@ -55,11 +55,11 @@ struct GamsParameter{N}
 end
 
 
-mutable struct GamsScalar
-    scalar::Number
-    description::String
-    GamsScalar(scalar::Number;description = "") = new(scalar,description)
-end
+#mutable struct GamsScalar
+#    scalar::Number
+#    description::String
+#    GamsScalar(scalar::Number;description = "") = new(scalar,description)
+#end
 
 
 """

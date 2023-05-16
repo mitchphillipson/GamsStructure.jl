@@ -33,7 +33,7 @@ include("structs.jl")
 include("GamsUniverse.jl")
 include("GamsSet.jl")
 include("GamsParameter.jl")
-include("GamsScalar.jl")
+#include("GamsScalar.jl")
 
 include("io/unload.jl")
 include("io/load.jl")

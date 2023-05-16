@@ -52,12 +52,12 @@ function load_universe(path::String;to_load = [],nGU::GamsUniverse = GamsUnivers
         end
     end
 
-    for (key,scalar) in info["scalar"]
-        key = Symbol(key)
-        if to_load == [] || key ∈ to_load
-            add_scalar(nGU,key,GamsScalar(scalar["scalar"],description = scalar["description"]))
-        end
-    end
+    #for (key,scalar) in info["scalar"]
+    #    key = Symbol(key)
+    #    if to_load == [] || key ∈ to_load
+    #        add_scalar(nGU,key,GamsScalar(scalar["scalar"],description = scalar["description"]))
+    #    end
+    #end
 
 
     #How should aliases be handled?

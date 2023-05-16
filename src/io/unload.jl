@@ -73,11 +73,11 @@ function unload(GU::GamsUniverse,path;to_unload = [],raw_text = true)
 
     end
 
-    for (key,scalar) in GU.scalars
-        if to_unload == [] || key∈to_unload
-            info[:scalar][key] = Dict("scalar" => scalar.scalar, "description" => scalar.description)
-        end
-    end
+    #for (key,scalar) in GU.scalars
+    #    if to_unload == [] || key∈to_unload
+    #        info[:scalar][key] = Dict("scalar" => scalar.scalar, "description" => scalar.description)
+    #    end
+    #end
 
     open("$path/gams_info.json","w") do f
         write(f,json(info))
