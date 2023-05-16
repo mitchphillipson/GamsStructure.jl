@@ -129,15 +129,14 @@ function load_parameter(GU::GamsUniverse,
 
     df = CSV.File("$path_to_parameter",stringtype=String,silencewarnings=true)
     out = GamsParameter(GU,domain,description = description)
-    sets = domain
 
     #If columns is set, load the data directly from the columns
     if !ismissing(columns)
-        sets = columns
+        domain = columns
     end
 
     for row in df
-        elm = [[Symbol(row[c])] for c in sets]
+        elm = [[Symbol(row[c])] for c in domain]
         out[elm...] = row[value_name]
     end
 
@@ -169,4 +168,39 @@ function load_parameter!(GU::GamsUniverse,
 
     add_parameter(GU,name,P)
 
+end
+
+"""
+    load_set(path::String;description = "")
+
+Load a GamsSet from a CSV file at the given location. 
+
+Sets must be one dimensional (at least for now) and it's assumed the first column are the elements
+and the second column is the description. If the second column is missing, the description is ""
+"""
+function load_set(path::String;description = "")
+    F = CSV.File(path,stringtype=String,silencewarnings=true)
+	
+    out = []
+    cols = propertynames(F)
+    for row in F
+        element = row[1]
+        desc = ""
+        if length(cols)==2 && !(ismissing(row[2]))
+            desc = row[2]
+        end
+        push!(out,GamsElement(element,desc))
+    end
+
+    return GamsSet(out,description) 
+end
+
+"""
+    load_set!(GU::GamsUniverse,set_name::Symbol,path::String;description="")
+
+Same as load_set, except the set gets added to the universe.
+"""
+function load_set!(GU::GamsUniverse,set_name::Symbol,path::String;description="")
+    S = load_set(path;description=description)
+    add_set(GU,set_name,S)
 end

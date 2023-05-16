@@ -1,4 +1,15 @@
 
+
+"""
+    domain(P::GamsParameter)
+
+Return the domain of the paramter P in the form of a vector of
+symbols.
+"""
+function domain(P::GamsParameter)
+    return P.sets
+end
+
 """ 
     @create_parameters(GU,block)
 
@@ -33,15 +44,7 @@ macro create_parameters(GU,block)
 end
 
 
-"""
-    domain(P::GamsParameter)
 
-Return the domain of the paramter P in the form of a vector of
-symbols.
-"""
-function domain(P::GamsParameter)
-    return P.sets
-end
 
 
 @inline _convert_idx(idx::Symbol,S::GamsSet,GU::GamsUniverse) = [S.index[i] for i∈GU[idx]]
@@ -91,8 +94,8 @@ end
 
 
 function Base.show(io::IO,P::GamsParameter)
-    domain = domain(P)
-    print("Description: $(P.description)\nDomain: $(domain)\n\n")
+    d = domain(P)
+    print("Description: $(P.description)\nDomain: $(d)\n\n")
     show(P.value)
 end
 

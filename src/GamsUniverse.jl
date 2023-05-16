@@ -7,10 +7,6 @@ function add_parameter(GU::GamsUniverse,parm_name::Symbol,parameter::GamsParamet
     GU.parameters[parm_name] = parameter
 end
 
-#function add_scalar(GU::GamsUniverse,scalar_name::Symbol,scalar)
-#    GU.scalars[scalar_name] = scalar
-#end
-
 
 function alias(GU::GamsUniverse,base_set::Symbol,aliases...)
     for alias in aliases
@@ -41,11 +37,6 @@ function Base.getindex(X::GamsUniverse,i)
     end
 end
 
-#function Base.setindex!(X::GamsUniverse,scalar::Number,scalar_name::Symbol)
-#    set_scalar!(X[scalar_name],scalar)
-#end
-
-
 function Base.show(io::IO, GU::GamsUniverse)
     out = "Sets\n\n"
 
@@ -60,10 +51,6 @@ function Base.show(io::IO, GU::GamsUniverse)
     for (key,parm) in GU.parameters
         out *= "$key => $(parm.sets) => $(parm.description)\n"
     end
-    #out *= "\nScalars\n\n"
-    #for (key,s) in GU.scalars
-    #    out *= "$key => $(s.scalar) => $(s.description)\n"
-    #end
 
     print(out)
 

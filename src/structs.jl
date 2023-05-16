@@ -81,8 +81,8 @@ Print a universe to see it's members and their descriptions.
 struct GamsUniverse
     sets::Dict{Symbol,GamsSet}
     parameters::Dict{Symbol,GamsParameter}
-    scalars::Dict{Symbol,GamsScalar}
-    GamsUniverse() = new(Dict(),Dict(),Dict())
+    #scalars::Dict{Symbol,GamsScalar}
+    GamsUniverse() = new(Dict(),Dict())
 end
 
 
@@ -97,13 +97,13 @@ end
 
 
 
-function set_scalar!(s::GamsScalar,scalar::Number)
-    s.scalar = scalar
-end
+#function set_scalar!(s::GamsScalar,scalar::Number)
+#    s.scalar = scalar
+#end
 
-function scalar(s::GamsScalar)
-    return s.scalar
-end
+#function scalar(s::GamsScalar)
+#    return s.scalar
+#end
 
 
 

@@ -61,3 +61,45 @@ macro load_parameters!(GU,base_path,block)
     end
     return code
 end
+
+
+"""
+    @GamsSets(GU,base_path,block)
+
+Load a collection of sets from a file. This will search for 
+the file `base_path\\name.csv` where name is the first
+entry of each line in the block.
+
+@GamsSets(GU,"sets",begin
+    :i, "Set 1", file_path => "other_name.csv"
+    :j, "Set 2"
+end)
+"""
+macro load_sets!(GU,base_path,block)
+    GU = esc(GU)
+    base_path = esc(base_path)
+    if !(isa(block,Expr) && block.head == :block)
+        error()
+    end
+
+    code = quote end
+    for it in block.args
+        if isexpr(it,:tuple)
+            set_name = it.args[1]
+            path = :("$($base_path)/$($set_name).csv")
+            desc = it.args[2]
+            if length(it.args)>=3
+                path = :("$($base_path)/$($(it.args[3]))")
+            end
+            push!(code.args, :($load_set!($GU,$set_name,$path;
+                                                description = $desc,
+                                                )))
+        end
+        if typeof(it) == QuoteNode
+            set_name = it
+            path = :("$($base_path)/$($set_name).csv")
+            push!(code.args, :($load_set!($GU,$set_name,$path)))
+        end
+    end
+    return code
+end
