@@ -12,8 +12,7 @@
         :p, (:i,:j), "test parm"
     end)
     
-    #add_parameter(GU,:p,GamsParameter((:i,:j),GU,description = "test parm"))
-    
+
     cnt = 1
     for i∈GU[:i],j∈GU[:j]
         GU[:p][[i],[j]] = cnt
