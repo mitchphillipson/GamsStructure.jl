@@ -1,7 +1,7 @@
 @testset "Loading and unloading a model" begin
     GU = GamsUniverse()
 
-    @GamsSet(GU,:i,"Test Set",begin
+    @create_set!(GU,:i,"Test Set",begin
         a,"elm"
         b,"elm2"
     end)

@@ -112,19 +112,19 @@ end
 
 
 """
-    @GamsSet(GU,set_name,description,block)
+    @create_set!(GU,set_name,description,block)
 
 Macro to create a GamsSet. 
 
 ```
-@GamsSet(GU,:i,"example set",begin
+@create_set!(GU,:i,"example set",begin
     element_1, "Description 1"
     element_2, "Description 2"
     element_3, "Description 3"
 end)
 ```
 """
-macro GamsSet(GU,set_name,description,block)
+macro create_set!(GU,set_name,description,block)
     GU = esc(GU)
     set_name = esc(set_name)
     description = esc(description)

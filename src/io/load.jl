@@ -20,10 +20,12 @@ function load_universe(path::String;to_load = [],nGU::GamsUniverse = GamsUnivers
     info=JSON.parse(open("$path/gams_info.json", "r"))  # parse and transform data
 
     for (key,(desc,aliases)) in info["set"]
-        key = Symbol(key)
+        name = Symbol(key)
         aliases = [Symbol(s) for s∈aliases if s∈keys(info["set"]) && (to_load == [] || Symbol(s)∈to_load)]
-        if to_load == [] || key ∈ to_load
-            add_set(nGU,key,GamsSet(path, key, description = desc, aliases=aliases))
+        if to_load == [] || name ∈ to_load
+            set_path = joinpath(path,"$name.csv")
+            load_set!(nGU,name,set_path;description=desc,aliases=aliases)
+            #add_set(nGU,key,GamsSet(path, key, description = desc, aliases=aliases))
         end
     end
 
@@ -171,14 +173,14 @@ function load_parameter!(GU::GamsUniverse,
 end
 
 """
-    load_set(path::String;description = "")
+    load_set(path::String;description = "",aliases=[])
 
 Load a GamsSet from a CSV file at the given location. 
 
 Sets must be one dimensional (at least for now) and it's assumed the first column are the elements
 and the second column is the description. If the second column is missing, the description is ""
 """
-function load_set(path::String;description = "")
+function load_set(path::String;description = "",aliases=[])
     F = CSV.File(path,stringtype=String,silencewarnings=true)
 	
     out = []
@@ -192,15 +194,15 @@ function load_set(path::String;description = "")
         push!(out,GamsElement(element,desc))
     end
 
-    return GamsSet(out,description) 
+    return GamsSet(out,description,aliases) 
 end
 
 """
-    load_set!(GU::GamsUniverse,set_name::Symbol,path::String;description="")
+    load_set!(GU::GamsUniverse,set_name::Symbol,path::String;description="",aliases=[])
 
 Same as load_set, except the set gets added to the universe.
 """
-function load_set!(GU::GamsUniverse,set_name::Symbol,path::String;description="")
-    S = load_set(path;description=description)
+function load_set!(GU::GamsUniverse,set_name::Symbol,path::String;description="",aliases=[])
+    S = load_set(path;description=description,aliases=aliases)
     add_set(GU,set_name,S)
 end
