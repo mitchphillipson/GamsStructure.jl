@@ -29,34 +29,6 @@ function GamsSet(e::Vector{Symbol};description = "")
 end
 
 """
-    GamsSet(base_path::String,set_name::Symbol;description = "",csv_description = true))
-
-Load a GamsSet from a CSV file at location base_path/set_name.csv. 
-
-Sets must be one dimensional (at least for now) and it's assumed the first column are the elements
-and the second column is the description. If the second column is missing, the description is ""
-
-Note: csv_description currently does nothing. 
-"""
-function GamsSet(base_path::String,set_name::Symbol;description = "",csv_description = true,aliases = [])
-    F = CSV.File("$base_path/$set_name.csv",stringtype=String,silencewarnings=true)
-	
-    out = []
-    cols = propertynames(F)
-    for row in F
-        element = row[1]
-        desc = ""
-        if length(cols)==2 && !(ismissing(row[2]))
-            desc = row[2]
-        end
-        push!(out,GamsElement(element,desc))
-    end
-
-    return GamsSet(out,description,aliases)    
-end
-
-
-"""
     GamsDomainSet(base_path::String,set_info::Tuple;description = "")
 
 Load data from a single column of a CSV into a GamsSet.
@@ -74,23 +46,54 @@ function GamsDomainSet(base_path::String,parm_name::Symbol,column::Int;descripti
     return GamsSet(out,description)
 end
 
+"""
+    deactivate(GU::GamsUniverse,s::Symbol,elements...)
 
-function GamsSet(base_path::String,set_info::Vector)
-    if length(set_info) == 1
-        return GamsSet(base_path,set_info[1])
-    elseif length(set_info) == 2
-        return GamsSet(base_path,set_info[1],description = set_info[2])
-    elseif length(set_info) == 3
-        return GamsSet(base_path,set_info[1],description = set_info[2],csv_description = set_info[3])
+Deactivate the given elements from the set.
+"""
+function deactivate(GU::GamsUniverse,s::Symbol,elements...)
+    N = 0
+    for elm in elements
+        if GU[:s][elm].active
+            GU[:s][elm].active = false
+            N+=1
+        end
     end
-    #return GamsSet(base_path,set_info...)
+    GU[:s].length += -N
 end
 
+"""
+    activate(GU::GamsUniverse,s::Symbol,elements...)
 
-_active_elements(S::GamsSet) = [e for e in S.elements if e.active]
+Activate the given elements from the set.
+"""
+function activate(GU::GamsUniverse,s::Symbol,elements...)
+    N = 0
+    for elm in elements
+        if !GU[:s][elm].active
+            GU[:s][elm].active = true
+            N+=1
+        end
+    end
+    GU[:s].length += N
+
+end
+
+function Base.iterate(S::GamsSet, state=1)
+    if state > length(S.elements) 
+        return nothing
+    end
+
+    for i∈state:length(S.elements)
+        if S.elements[i].active
+            return (S.elements[i].name,i+1)
+        end
+    end
+    return nothing
 
 
-Base.iterate(S::GamsSet,state = 1) = state> length(S) ? nothing : (_active_elements(S)[state].name,state+1)
+end
+
 
 Base.keys(S::GamsSet) = [e for e in S]
 
@@ -112,13 +115,20 @@ function Base.in(x::GamsElement,r::GamsSet)
 end
 
 
-function Base.getindex(X::GamsSet,i)
-    for elm in X.elements
-        if elm.name == i
-            return elm
-        end
+function Base.getindex(X::GamsSet,i::Symbol)
+    #for elm in X.elements
+    #    if elm.name == i
+    #        return elm
+    #    end
+    #end
+
+    try
+        return X.elements[X.index[i]]
+    catch
+        error("$i is not a member of this set")
     end
-    error("$i is not a member of this set")
+
+    
 end
 
 function Base.getindex(X::GamsSet,i::GamsSet)
@@ -144,24 +154,25 @@ function Base.setindex!(X::GamsSet,active::Bool,i)
 end
 
 function Base.length(X::GamsSet)
-    return length(_active_elements(X))
+    return X.length#length(X.elements)
+    #return length(_active_elements(X))
 end
 
 
 """
-    @GamsSet(GU,set_name,description,block)
+    @create_set!(GU,set_name,description,block)
 
 Macro to create a GamsSet. 
 
 ```
-@GamsSet(GU,:i,"example set",begin
+@create_set!(GU,:i,"example set",begin
     element_1, "Description 1"
     element_2, "Description 2"
     element_3, "Description 3"
 end)
 ```
 """
-macro GamsSet(GU,set_name,description,block)
+macro create_set!(GU,set_name,description,block)
     GU = esc(GU)
     set_name = esc(set_name)
     description = esc(description)
@@ -183,47 +194,7 @@ macro GamsSet(GU,set_name,description,block)
     return :(add_set($GU,$set_name,GamsSet($elements,$description)))
 end
 
-"""
-    @GamsSets(GU,base_path,block)
 
-Load a collection of sets from a file. This will search for 
-the file `base_path\\name.csv` where name is the first
-entry of each line in the block.
-
-@GamsSets(GU,"sets",begin
-    :i, "Set 1"
-    :j, "Set 2"
-end)
-"""
-macro GamsSets(GU,base_path,block)
-    GU = esc(GU)
-    base_path = esc(base_path)
-    if !(isa(block,Expr) && block.head == :block)
-        error("Problem")
-    end
-    code = quote end
-    for it in block.args
-        if isexpr(it, :tuple)
-            set_name = it.args[1]
-            desc = ""
-            if length(it.args)>=2
-                desc = it.args[2]
-            end
-            csv_desc = true
-            if length(it.args)>=3
-                csv_desc = it.args[3]
-            end
-            push!(code.args,:($add_set($GU,$set_name, GamsSet(
-                                $base_path,
-                                $set_name,
-                                description = $desc,
-                                csv_description = $csv_desc)
-                            ))
-            )
-        end
-    end
-    return code
-end
 
 macro GamsDomainSets(GU,base_path,block)
     GU = esc(GU)

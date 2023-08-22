@@ -1,68 +1,28 @@
 
-"""
-    GamsParameter(base_path::String,parm_name::Symbol,sets,GU::GamsUniverse;description = "",columns = missing)
-
-Load a GamsParameter from a file. 
-"""
-function GamsParameter(base_path::String,parm_name::Symbol,sets::Tuple{Vararg{Symbol}},GU::GamsUniverse;description = "")
-    df = CSV.File("$base_path/$parm_name.csv",stringtype=String,silencewarnings=true)
-    s = [GU[c] for c in sets]
-    out = GamsParameter(GU,sets,description = description)
-
-    for row in df
-        elm = [[Symbol(row[c])] for c in sets]
-        #This is a huge negative impact on performance
-        #if all([elm[i][1]∈s[i] for i=1:length(s)]) #Ensure the labels to be loaded are actually in the domain
-            out[elm...] = row[:value]
-        #end
-    end
-
-    #This doesn't work. There could be mulitple columns, and you're picking out by name
-    #out = GamsParameter(base_path,parm_name,sets,GU,collect(1:length(sets)),description = description)
-
-    return out
-end
 
 """
-    GamsParameter(base_path::String,parm_name::Symbol,sets,GU::GamsUniverse;description = "",columns = missing)
+    domain(P::GamsParameter)
 
-Load a GamsParameter from a file. The columns vector is the specific columns to extract from the document. This is 
-primarily useful when the column names of a file either don't match the sets or repeat. 
-
-The value column is assumed to be at the end and should not be included in the columns argument. 
+Return the domain of the paramter P in the form of a vector of
+symbols.
 """
-function GamsParameter(base_path::String,parm_name::Symbol,sets::Tuple{Vararg{Symbol}},GU::GamsUniverse,columns::Vector{Int};description = "")
-    if length(sets)!=length(columns)
-        throw(DommainError("sets $sets must be the same length as columns $columns"))
-    end
-
-    df = CSV.File("$base_path/$parm_name.csv",stringtype=String,silencewarnings=true)
-    s = [GU[c] for c in sets]
-    out = GamsParameter(GU,sets,description = description)
-
-    for row in df
-        elm = [[Symbol(row[c])] for c in columns]
-        #if all([elm[i][1]∈s[i] for i=1:length(s)])
-            out[elm...] = row[:value]
-        #end
-    end
-
-    return out
+function domain(P::GamsParameter)
+    return P.sets
 end
 
 """ 
-    @GamsParameters(GU,block)
+    @create_parameters(GU,block)
 
 Create many empty parameters
 
 ```
-@GamsParameters(GU,begin
+@create_parameters(GU,begin
     :P, (:set_1,:set_2), "Description 1"
     :X, (:set_1,), "Description 2"
 end)
 ```
 """
-macro GamsParameters(GU,block)
+macro create_parameters(GU,block)
     GU = esc(GU)
     if !(isa(block,Expr) && block.head == :block)
         error()
@@ -83,65 +43,18 @@ macro GamsParameters(GU,block)
     return code
 end
 
-""" 
-    @GamsParameters(GU,base_path,block)
 
-Load parameters from a file. This will search `base_path\\name.csv`.
+function __get_index(S::GamsSet,index)
 
-
-```
-@GamsParameters(GU,begin
-    :P, (:set_1,:set_2), "Description 1"
-    :X, (:set_1,), "Description 2"
-end)
-```
-"""
-macro GamsParameters(GU,base_path,block)
-    GU = esc(GU)
-    base_path = esc(base_path)
-    if !(isa(block,Expr) && block.head == :block)
-        error()
-    end
-
-    code = quote end
-    for it in block.args
-        if isexpr(it,:tuple)
-            parm_name = it.args[1]
-            sets = it.args[2]
-            desc = ""
-            if length(it.args) >= 3
-                desc = it.args[3]
-            end
-            #columns = collect(1:length(sets))
-            if length(it.args) >= 4
-                columns = it.args[4]
-            
-                push!(code.args,:($add_parameter($GU,$parm_name, 
-                                GamsParameter($base_path,$parm_name,$sets,$GU,$columns,description = $desc))))
-            else
-                push!(code.args,:($add_parameter($GU,$parm_name, 
-                                    GamsParameter($base_path,$parm_name,$sets,$GU,description = $desc))))
-            end
-        end
-    end
-    return code
-end
-
-"""
-    domain(P::GamsParameter)
-
-Return the domain of the paramter P in the form of a vector of
-symbols.
-"""
-function domain(P::GamsParameter)
-    return P.sets
+    #return [S.index[i] for i∈index]
+    return get.(Ref(S.index),index,missing)
 end
 
 
-@inline _convert_idx(idx::Symbol,S::GamsSet,GU::GamsUniverse) = [S.index[i] for i∈GU[idx]]
-@inline _convert_idx(idx::Vector{Symbol},S::GamsSet,GU::GamsUniverse) = length(idx)==1 ? S.index[idx[1]] : [S.index[i] for i∈idx]
-@inline _convert_idx(idx::GamsSet,S::GamsSet,GU::GamsUniverse) = [S.index[i] for i∈idx]
-@inline _convert_idx(idx::Colon,S::GamsSet,GU::GamsUniverse) = [S.index[i] for i∈S]
+@inline _convert_idx(idx::Symbol,S::GamsSet,GU::GamsUniverse) = __get_index(S,GU[idx])#[S.index[i] for i∈GU[idx]]
+@inline _convert_idx(idx::Vector{Symbol},S::GamsSet,GU::GamsUniverse) = length(idx)==1 ? S.index[idx[1]] : __get_index(S,idx)#[S.index[i] for i∈idx]
+@inline _convert_idx(idx::GamsSet,S::GamsSet,GU::GamsUniverse) = __get_index(S,idx) #[S.index[i] for i∈idx]
+@inline _convert_idx(idx::Colon,S::GamsSet,GU::GamsUniverse) = __get_index(S,S)     #[S.index[i] for i∈S]
 @inline _convert_idx(idx,S::GamsSet,GU::GamsUniverse) = idx
 
 """
@@ -185,7 +98,8 @@ end
 
 
 function Base.show(io::IO,P::GamsParameter)
-    print("Description: $(P.description)\nDomain: $(P.sets)\n\n")
+    d = domain(P)
+    print("Description: $(P.description)\nDomain: $(d)\n\n")
     show(P.value)
 end
 
