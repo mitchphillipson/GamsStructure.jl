@@ -18,13 +18,14 @@ end
 
 Container to hold GamsElements. 
 """
-struct GamsSet
+mutable struct GamsSet
     elements::Vector{GamsElement}
     description::String
-    index::NamedTuple#Dict{Symbol,Int}
+    index::Dict{Symbol,Int}
     aliases::Vector{Symbol}
-    #GamsSet(e,description = "",aliases= []) = new(e,description,Dict(b=>a for (a,b) in enumerate([i.name for i in e])),aliases)
-    GamsSet(e,description = "",aliases= []) = new(e,description,NamedTuple(reverse.(enumerate([i.name for i∈e])))  ,aliases)
+    length::Int64
+    GamsSet(e,description = "",aliases= []) = new(e,description,Dict(b=>a for (a,b) in enumerate([i.name for i in e])),aliases,length(e))
+    #GamsSet(e,description = "",aliases= []) = new(e,description,NamedTuple(reverse.(enumerate([i.name for i∈e])))  ,aliases)
 end
 
 
@@ -47,7 +48,7 @@ P[:set_1,[:e_1]]
 """
 struct GamsParameter{N}
     universe
-    sets::Tuple{Vararg{Symbol}}
+    sets::Tuple{Vararg{Symbol,N}}
     value::Array{Float64,N}
     description::String
     GamsParameter(GU,sets::Tuple{Vararg{Symbol}},description::String) = new{length(sets)}(GU,sets,zeros(Float64,Tuple(length(GU[e].elements) for e∈sets)),description)

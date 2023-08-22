@@ -44,13 +44,17 @@ macro create_parameters(GU,block)
 end
 
 
+function __get_index(S::GamsSet,index)
+
+    #return [S.index[i] for i∈index]
+    return get.(Ref(S.index),index,missing)
+end
 
 
-
-@inline _convert_idx(idx::Symbol,S::GamsSet,GU::GamsUniverse) = [S.index[i] for i∈GU[idx]]
-@inline _convert_idx(idx::Vector{Symbol},S::GamsSet,GU::GamsUniverse) = length(idx)==1 ? S.index[idx[1]] : [S.index[i] for i∈idx]
-@inline _convert_idx(idx::GamsSet,S::GamsSet,GU::GamsUniverse) = [S.index[i] for i∈idx]
-@inline _convert_idx(idx::Colon,S::GamsSet,GU::GamsUniverse) = [S.index[i] for i∈S]
+@inline _convert_idx(idx::Symbol,S::GamsSet,GU::GamsUniverse) = __get_index(S,GU[idx])#[S.index[i] for i∈GU[idx]]
+@inline _convert_idx(idx::Vector{Symbol},S::GamsSet,GU::GamsUniverse) = length(idx)==1 ? S.index[idx[1]] : __get_index(S,idx)#[S.index[i] for i∈idx]
+@inline _convert_idx(idx::GamsSet,S::GamsSet,GU::GamsUniverse) = __get_index(S,idx) #[S.index[i] for i∈idx]
+@inline _convert_idx(idx::Colon,S::GamsSet,GU::GamsUniverse) = __get_index(S,S)     #[S.index[i] for i∈S]
 @inline _convert_idx(idx,S::GamsSet,GU::GamsUniverse) = idx
 
 """

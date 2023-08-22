@@ -46,14 +46,54 @@ function GamsDomainSet(base_path::String,parm_name::Symbol,column::Int;descripti
     return GamsSet(out,description)
 end
 
+"""
+    deactivate(GU::GamsUniverse,s::Symbol,elements...)
+
+Deactivate the given elements from the set.
+"""
+function deactivate(GU::GamsUniverse,s::Symbol,elements...)
+    N = 0
+    for elm in elements
+        if GU[:s][elm].active
+            GU[:s][elm].active = false
+            N+=1
+        end
+    end
+    GU[:s].length += -N
+end
+
+"""
+    activate(GU::GamsUniverse,s::Symbol,elements...)
+
+Activate the given elements from the set.
+"""
+function activate(GU::GamsUniverse,s::Symbol,elements...)
+    N = 0
+    for elm in elements
+        if !GU[:s][elm].active
+            GU[:s][elm].active = true
+            N+=1
+        end
+    end
+    GU[:s].length += N
+
+end
+
+function Base.iterate(S::GamsSet, state=1)
+    if state > length(S.elements) 
+        return nothing
+    end
+
+    for i∈state:length(S.elements)
+        if S.elements[i].active
+            return (S.elements[i].name,i+1)
+        end
+    end
+    return nothing
 
 
+end
 
-
-_active_elements(S::GamsSet) = [e for e in S.elements if e.active]
-
-
-Base.iterate(S::GamsSet,state = 1) = state> length(S) ? nothing : (_active_elements(S)[state].name,state+1)
 
 Base.keys(S::GamsSet) = [e for e in S]
 
@@ -75,13 +115,20 @@ function Base.in(x::GamsElement,r::GamsSet)
 end
 
 
-function Base.getindex(X::GamsSet,i)
-    for elm in X.elements
-        if elm.name == i
-            return elm
-        end
+function Base.getindex(X::GamsSet,i::Symbol)
+    #for elm in X.elements
+    #    if elm.name == i
+    #        return elm
+    #    end
+    #end
+
+    try
+        return X.elements[X.index[i]]
+    catch
+        error("$i is not a member of this set")
     end
-    error("$i is not a member of this set")
+
+    
 end
 
 function Base.getindex(X::GamsSet,i::GamsSet)
@@ -107,7 +154,8 @@ function Base.setindex!(X::GamsSet,active::Bool,i)
 end
 
 function Base.length(X::GamsSet)
-    return length(_active_elements(X))
+    return X.length#length(X.elements)
+    #return length(_active_elements(X))
 end
 
 

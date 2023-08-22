@@ -35,6 +35,7 @@ function Base.getindex(X::GamsUniverse,i)
     #else
     #    return X.scalars[i]
     end
+    error("Key $i not found in universe")
 end
 
 function Base.show(io::IO, GU::GamsUniverse)

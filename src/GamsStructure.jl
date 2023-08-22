@@ -14,7 +14,7 @@ export GamsElement
 
 
 export GamsSet, alias,@create_set!,@GamsDomainSets,GamsDomainSet,
-        load_set,load_set!,@load_sets!
+        load_set,load_set!,@load_sets!,deactivate,activate
 
 export  GamsParameter,@create_parameters,
         load_parameter,load_parameter!,@load_parameters!,domain
