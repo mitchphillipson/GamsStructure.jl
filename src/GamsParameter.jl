@@ -97,10 +97,16 @@ function Base.length(X::GamsParameter)
 end
 
 
-function Base.show(io::IO,P::GamsParameter)
+function Base.summary(io::IO,P::GamsParameter)
     d = domain(P)
-    print("Description: $(P.description)\nDomain: $(d)\n\n")
-    show(P.value)
+    return print(io,"Description: $(P.description)\nDomain: $(d)\n\n")
+end
+
+
+function Base.show(io::IO, P::GamsParameter)
+    summary(io,P)
+    #println(io,":")
+    return Base.print_array(io,P.value)
 end
 
 
