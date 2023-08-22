@@ -90,9 +90,9 @@ end
 
 function Base.show(io::IO,x::GamsElement)
     if x.description != ""
-        print("$(x.name) \t \"$(x.description)\"")
+        print(io,"$(x.name) \t \"$(x.description)\"")
     else
-        print("$(x.name)")
+        print(io,"$(x.name)")
     end
 end
 

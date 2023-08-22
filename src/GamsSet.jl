@@ -99,10 +99,10 @@ Base.keys(S::GamsSet) = [e for e in S]
 
 function Base.show(io::IO, x::GamsSet)
     if x.description != ""
-        print("$(x.description)\n\n")
+        print(io,"$(x.description)\n\n")
     end
     for elm in [e for e in x.elements if e.active]
-        println(elm)
+        println(io,elm)
     end
 end
 

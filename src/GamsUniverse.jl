@@ -53,9 +53,9 @@ function Base.show(io::IO, GU::GamsUniverse)
         out *= "$key => $(parm.sets) => $(parm.description)\n"
     end
 
-    print(out)
+    return print(io,out)
 
-    return out
+    #return out
 
 end
 
