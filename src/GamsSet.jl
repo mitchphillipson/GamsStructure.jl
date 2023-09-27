@@ -54,12 +54,12 @@ Deactivate the given elements from the set.
 function deactivate(GU::GamsUniverse,s::Symbol,elements...)
     N = 0
     for elm in elements
-        if GU[:s][elm].active
-            GU[:s][elm].active = false
+        if GU[s][elm].active
+            GU[s][elm].active = false
             N+=1
         end
     end
-    GU[:s].length += -N
+    GU[s].length += -N
 end
 
 """
@@ -70,12 +70,12 @@ Activate the given elements from the set.
 function activate(GU::GamsUniverse,s::Symbol,elements...)
     N = 0
     for elm in elements
-        if !GU[:s][elm].active
-            GU[:s][elm].active = true
+        if !GU[s][elm].active
+            GU[s][elm].active = true
             N+=1
         end
     end
-    GU[:s].length += N
+    GU[s].length += N
 
 end
 
