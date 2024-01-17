@@ -1,21 +1,21 @@
 @testset "Loading and unloading a model" begin
     GU = GamsUniverse()
 
-    @create_set!(GU,:i,"Test Set",begin
+    @set(GU, I,"Test Set",begin
         a,"elm"
         b,"elm2"
     end)
     
-    alias(GU,:i,:j)
+    @alias(GU, I, J)
     
-    @create_parameters(GU,begin
-        :p, (:i,:j), "test parm"
+    @parameters(GU,begin
+        p, (:I,:J), (description = "test parm",)
     end)
     
 
     cnt = 1
-    for i∈GU[:i],j∈GU[:j]
-        GU[:p][[i],[j]] = cnt
+    for i∈I,j∈J
+        p[i,j] = cnt
         cnt+=1
     end
     
