@@ -18,6 +18,7 @@ function Base.length(M::GamsMask)
     return prod(length(P.universe[i]) for i∈P.domain)
 end
 
+Base.iterate(sa::GamsMask, args...) = iterate(values(sa.data), args...)
 
 function Base.size(P::GamsMask)
     return Tuple(length(P.universe[i]) for i∈P.domain)
@@ -96,3 +97,36 @@ function Base.show(io::IO, ::MIME"text/plain", P::GamsMask)
 end
 
 Base.show(io::IO, x::GamsMask) = show(convert(IOContext, io), x)
+
+function Base.show(io::IOContext, x::GamsMask)
+    summary(io,x)
+    if isempty(x)
+        return show(io, MIME("text/plain"), x)
+    end
+    limit = get(io, :limit, false)::Bool
+    half_screen_rows = limit ? div(displaysize(io)[1] - 8, 2) : typemax(Int)
+    if !haskey(io, :compact)
+        io = IOContext(io, :compact => true)
+    end
+    
+    key_strings = [
+        (join(key, ", "), value) for
+        (i, (key, value)) in enumerate(x.data) if
+        i < half_screen_rows || i > length(x) - half_screen_rows
+    ]
+    
+    sort!(key_strings; by = x -> x[1])
+    pad = maximum(length(x[1]) for x in key_strings)
+    
+    for (i, (key, value)) in enumerate(key_strings)
+        print(io, "  [", rpad(key, pad), "]  =  ", value)
+        if i != length(key_strings)
+            println(io)
+            if i == half_screen_rows
+                println(io, "   ", " "^pad, "   \u22ee")
+            end
+        end
+    end
+    
+    return
+end
