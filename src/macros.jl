@@ -83,3 +83,21 @@ macro set(GU, set_name, description, block)
 
     return :($(esc(set_name)) = add_set($(esc(GU)), $(QuoteNode(set_name)), $constr_call))
 end
+
+
+macro extract_sets_as_vector(GU, sets...)
+    code = quote end
+    for s∈sets
+        push!(code.args, :($(esc(s)) = [e for e∈$GU[$(QuoteNode(s))]]))
+    end
+    return code
+end
+
+
+macro extract(GU, vars...)
+    code = quote end
+    for s∈vars
+        push!(code.args, :($(esc(s)) = $(esc(GU))[$(QuoteNode(s))]))
+    end
+    return code
+end
