@@ -115,20 +115,17 @@ function Base.in(x::GamsElement,r::GamsSet)
 end
 
 
-function Base.getindex(X::GamsSet,i::Symbol)
-    #for elm in X.elements
-    #    if elm.name == i
-    #        return elm
-    #    end
-    #end
+function Base.getindex(X::GamsSet,i::Int)
+    return X.elements[i]
+end
 
+
+function Base.getindex(X::GamsSet,i::Symbol)
     try
-        return X.elements[X.index[i]]
+        return X[X.index[i]]
     catch
         error("$i is not a member of this set")
     end
-
-    
 end
 
 function Base.getindex(X::GamsSet,i::GamsSet)

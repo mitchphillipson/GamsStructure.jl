@@ -3,20 +3,21 @@ function add_set(GU::GamsUniverse,set_name::Symbol,set::GamsSet)
     GU.sets[set_name] = set
 end
 
-function add_parameter(GU::GamsUniverse,parm_name::Symbol,parameter::GamsParameter)
+function add_parameter(GU::GamsUniverse,parm_name::Symbol,parameter::Parameter)
     GU.parameters[parm_name] = parameter
 end
 
 
-function alias(GU::GamsUniverse,base_set::Symbol,aliases...)
-    for alias in aliases
-        new_set = deepcopy(GU[base_set])
-        push!(new_set.aliases,base_set)
-        for al in new_set.aliases
-            push!(GU[al].aliases,alias)
-        end
-        add_set(GU,alias,new_set)
+function alias(GU::GamsUniverse,base_set::Symbol,alias::Symbol)
+    #for alias in aliases
+    new_set = deepcopy(GU[base_set])
+    push!(new_set.aliases,base_set)
+    for al in new_set.aliases
+        push!(GU[al].aliases,alias)
     end
+    add_set(GU,alias,new_set)
+    return new_set
+
 end
 
 function sets(GU::GamsUniverse)
@@ -50,7 +51,7 @@ function Base.show(io::IO, GU::GamsUniverse)
     end
     out *= "\nParameters\n\n"
     for (key,parm) in GU.parameters
-        out *= "$key => $(parm.sets) => $(parm.description)\n"
+        out *= "$key => $(parm.domain) => $(parm.description)\n"
     end
 
     return print(io,out)
@@ -59,6 +60,6 @@ function Base.show(io::IO, GU::GamsUniverse)
 
 end
 
-function Base.setindex!(GU::GamsUniverse,parm::GamsParameter,key::Symbol)
+function Base.setindex!(GU::GamsUniverse,parm::Parameter,key::Symbol)
     GU.parameters[key] = deepcopy(parm)
 end

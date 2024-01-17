@@ -17,6 +17,8 @@ end
     GamsSet(Elements::Vector{GamsElement}, description = "")
 
 Container to hold GamsElements. 
+
+Best way to create a new set is using the [`@set`](@ref) macro.
 """
 mutable struct GamsSet
     elements::Vector{GamsElement}
@@ -32,7 +34,25 @@ end
 """
     GamsParameter{N}(GU,sets::Tuple{Vararg{Symbol}},value::Array{Float64,N},description::String)
 
-Container to hold parameters.
+
+"""
+#struct GamsParameter{N}
+#    universe
+#    sets::Tuple{Vararg{Symbol,N}}
+#    value::Array{Float64,N}
+#    description::String
+#    GamsParameter(GU,sets::Tuple{Vararg{Symbol}},description::String) = new{length(sets)}(GU,sets,zeros(Float64,Tuple(length(GU[e].elements) for e∈sets)),description)
+#    GamsParameter(GU,sets::Tuple{Vararg{Symbol}};description = "") = new{length(sets)}(GU,sets,zeros(Float64,Tuple(length(GU[e].elements) for e∈sets)),description)
+#end
+
+
+abstract type DenseSparseArray{T,N} <: AbstractArray{T,N} end
+
+"""
+    Parameter(GU,domain::Tuple{Vararg{Symbol}};description::String="") = new{Float64,length(domain)}(GU,domain,Dict{Any,Float64}(),description)
+
+
+Container to hold parameters. Highly recommended to create using the [`@parameter`](@ref) macro.
 
 Parameters can be indexed either by set name
 
@@ -44,23 +64,28 @@ P[[:element_1,:element_2],[:e_1,:e_2]]
 
 or a mix of both
 
-P[:set_1,[:e_1]]
+P[:set_1,:e_1]
+
+Order of precedence is set then element, so if you have an element with the same symbol
+as the set name, there will be a conflict. You can either wrap the element name in a 
+vector or avoid this.  
 """
-struct GamsParameter{N}
+struct Parameter{T<:Number,N} <: DenseSparseArray{T,N}
     universe
-    sets::Tuple{Vararg{Symbol,N}}
-    value::Array{Float64,N}
+    domain::NTuple{N,Symbol}
+    data::Dict{NTuple{N,Any},T}
     description::String
-    GamsParameter(GU,sets::Tuple{Vararg{Symbol}},description::String) = new{length(sets)}(GU,sets,zeros(Float64,Tuple(length(GU[e].elements) for e∈sets)),description)
-    GamsParameter(GU,sets::Tuple{Vararg{Symbol}};description = "") = new{length(sets)}(GU,sets,zeros(Float64,Tuple(length(GU[e].elements) for e∈sets)),description)
+    Parameter(GU,domain::Tuple{Vararg{Symbol}};description::String="") = new{Float64,length(domain)}(GU,domain,Dict{Any,Float64}(),description)
+    Parameter(GU,domain::Symbol;description::String="") = new{Float64,1}(GU,tuple(domain),Dict{Any,Float64}(),description)
 end
 
-
-#mutable struct GamsScalar
-#    scalar::Number
-#    description::String
-#    GamsScalar(scalar::Number;description = "") = new(scalar,description)
-#end
+struct Mask{N} <: DenseSparseArray{Bool,N}
+    universe
+    domain::NTuple{N,Symbol}
+    data::Dict{NTuple{N,Any},Bool}
+    description::String
+    Mask(GU,domain::Vararg{Symbol,N};description::String = "") where {N}= new{N}(GU,domain,Dict{Any,Bool}(),description)
+end
 
 
 """
@@ -81,7 +106,7 @@ Print a universe to see it's members and their descriptions.
 """
 struct GamsUniverse
     sets::Dict{Symbol,GamsSet}
-    parameters::Dict{Symbol,GamsParameter}
+    parameters::Dict{Symbol,Parameter}
     #scalars::Dict{Symbol,GamsScalar}
     GamsUniverse() = new(Dict(),Dict())
 end
@@ -97,14 +122,6 @@ function Base.show(io::IO,x::GamsElement)
 end
 
 
-
-#function set_scalar!(s::GamsScalar,scalar::Number)
-#    s.scalar = scalar
-#end
-
-#function scalar(s::GamsScalar)
-#    return s.scalar
-#end
 
 
 

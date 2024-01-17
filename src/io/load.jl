@@ -130,7 +130,8 @@ function load_parameter(GU::GamsUniverse,
                         )
 
     df = CSV.File("$path_to_parameter",stringtype=String,silencewarnings=true)
-    out = GamsParameter(GU,domain,description = description)
+    #out = GamsParameter(GU,domain,description = description)
+    out = Parameter(GU,domain,description = description)
 
     #If columns is set, load the data directly from the columns
     if !ismissing(columns)

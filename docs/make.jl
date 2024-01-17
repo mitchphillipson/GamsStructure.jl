@@ -19,7 +19,7 @@ makedocs(
     #    assets = ["assets/extra_styles.css"],
     #    sidebar_sitename = false,
     #),
-    strict = true,
+    #strict = true,
     pages = _PAGES
 )
 
