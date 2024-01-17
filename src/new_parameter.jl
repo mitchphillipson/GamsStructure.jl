@@ -11,6 +11,8 @@ function Base.length(P::new_parameter)
     return prod(length(P.universe[i]) for i∈P.domain)
 end
 
+Base.iterate(sa::new_parameter, args...) = iterate(values(sa.data), args...)
+
 function domain(P::new_parameter)
     return P.domain
 end
@@ -59,3 +61,36 @@ function Base.show(io::IO, ::MIME"text/plain", P::new_parameter)
 end
 
 Base.show(io::IO, x::new_parameter) = show(convert(IOContext, io), x)
+
+function Base.show(io::IOContext, x::new_parameter)
+    summary(io,x)
+    if isempty(x)
+        return show(io, MIME("text/plain"), x)
+    end
+    limit = get(io, :limit, false)::Bool
+    half_screen_rows = limit ? div(displaysize(io)[1] - 8, 2) : typemax(Int)
+    if !haskey(io, :compact)
+        io = IOContext(io, :compact => true)
+    end
+    
+    key_strings = [
+        (join(key, ", "), value) for
+        (i, (key, value)) in enumerate(x.data) if
+        i < half_screen_rows || i > length(x) - half_screen_rows
+    ]
+    
+    sort!(key_strings; by = x -> x[1])
+    pad = maximum(length(x[1]) for x in key_strings)
+    
+    for (i, (key, value)) in enumerate(key_strings)
+        print(io, "  [", rpad(key, pad), "]  =  ", value)
+        if i != length(key_strings)
+            println(io)
+            if i == half_screen_rows
+                println(io, "   ", " "^pad, "   \u22ee")
+            end
+        end
+    end
+    
+    return
+end
