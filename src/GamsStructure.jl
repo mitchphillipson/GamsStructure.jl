@@ -13,9 +13,10 @@ export GamsElement
 
 
 export GamsSet, alias,@create_set!,@GamsDomainSets,GamsDomainSet,
-        load_set,load_set!,@load_sets!,deactivate,activate
+        load_set,load_set!,@load_sets!,deactivate,activate,
+        @set
 
-export  Parameter,@create_parameters,
+export  Parameter,@parameter,@parameters,
         load_parameter,load_parameter!,@load_parameters!,domain
 
 export Mask
@@ -39,7 +40,7 @@ include("GamsSet.jl")
 #include("GamsParameter.jl")
 #include("GamsScalar.jl")
 
-
+include("macros.jl")
 
 include("io/unload.jl")
 include("io/load.jl")

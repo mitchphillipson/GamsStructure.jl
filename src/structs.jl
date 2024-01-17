@@ -64,6 +64,7 @@ struct Parameter{T<:Number,N} <: DenseSparseArray{T,N}
     data::Dict{NTuple{N,Any},T}
     description::String
     Parameter(GU,domain::Tuple{Vararg{Symbol}};description::String="") = new{Float64,length(domain)}(GU,domain,Dict{Any,Float64}(),description)
+    Parameter(GU,domain::Symbol;description::String="") = new{Float64,1}(GU,tuple(domain),Dict{Any,Float64}(),description)
 end
 
 struct Mask{N} <: DenseSparseArray{Bool,N}
