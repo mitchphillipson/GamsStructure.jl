@@ -10,11 +10,11 @@ function unload(GU::GamsUniverse,P::Parameter,path,parm_name;raw_text=true)
     if raw_text
         out = Vector{Vector{Any}}()
 
-        tmp = [string(s) for s in P.sets]
+        tmp = [string(s) for s in P.domain]
         push!(tmp,"value")
         push!(out,tmp)
 
-        axes = [[e for e∈GU[s]] for s∈P.sets]
+        axes = [[e for e∈GU[s]] for s∈P.domain]
         for idx ∈ Iterators.product(axes...)
             tmp = Vector{Any}()
             append!(tmp,[idx...])
@@ -67,8 +67,8 @@ function unload(GU::GamsUniverse,path;to_unload = [],raw_text = true)
     for (key,parm) in GU.parameters
         if to_unload == [] || key∈to_unload
             unload(GU,parm,path,key;raw_text=raw_text)
-            cols = collect(1:length(parm.sets))
-            info[:parm][key] = [parm.sets,parm.description,cols]
+            cols = collect(1:length(parm.domain))
+            info[:parm][key] = [parm.domain,parm.description,cols]
         end
 
     end
