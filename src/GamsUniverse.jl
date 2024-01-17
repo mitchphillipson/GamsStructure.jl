@@ -50,7 +50,7 @@ function Base.show(io::IO, GU::GamsUniverse)
     end
     out *= "\nParameters\n\n"
     for (key,parm) in GU.parameters
-        out *= "$key => $(parm.sets) => $(parm.description)\n"
+        out *= "$key => $(parm.domain) => $(parm.description)\n"
     end
 
     return print(io,out)
