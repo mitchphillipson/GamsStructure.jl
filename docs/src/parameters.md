@@ -1,7 +1,9 @@
 # Parameters
 
 ```@docs
-GamsParameter
+Parameter
+@parameter
+@parameters
 load_parameter(GU::GamsUniverse,
                         path_to_parameter::String,
                         domain::Tuple{Vararg{Symbol}};
@@ -17,7 +19,5 @@ load_parameter!(GU::GamsUniverse,
                 columns::Union{Vector{Int},Missing} = missing,
                 value_name = :value
                 )
-@load_parameters!(GU,base_path,block)
-@create_parameters(GU,block)
-domain(P::GamsParameter)
 ```
+

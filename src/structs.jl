@@ -17,6 +17,8 @@ end
     GamsSet(Elements::Vector{GamsElement}, description = "")
 
 Container to hold GamsElements. 
+
+Best way to create a new set is using the [`@set`](@ref) macro.
 """
 mutable struct GamsSet
     elements::Vector{GamsElement}
@@ -32,19 +34,7 @@ end
 """
     GamsParameter{N}(GU,sets::Tuple{Vararg{Symbol}},value::Array{Float64,N},description::String)
 
-Container to hold parameters.
 
-Parameters can be indexed either by set name
-
-P[:set_1,:set_2]
-
-or by list of element names
-
-P[[:element_1,:element_2],[:e_1,:e_2]]
-
-or a mix of both
-
-P[:set_1,[:e_1]]
 """
 #struct GamsParameter{N}
 #    universe
@@ -58,6 +48,28 @@ P[:set_1,[:e_1]]
 
 abstract type DenseSparseArray{T,N} <: AbstractArray{T,N} end
 
+"""
+    Parameter(GU,domain::Tuple{Vararg{Symbol}};description::String="") = new{Float64,length(domain)}(GU,domain,Dict{Any,Float64}(),description)
+
+
+Container to hold parameters. Highly recommended to create using the [`@parameter`](@ref) macro.
+
+Parameters can be indexed either by set name
+
+P[:set_1,:set_2]
+
+or by list of element names
+
+P[[:element_1,:element_2],[:e_1,:e_2]]
+
+or a mix of both
+
+P[:set_1,:e_1]
+
+Order of precedence is set then element, so if you have an element with the same symbol
+as the set name, there will be a conflict. You can either wrap the element name in a 
+vector or avoid this.  
+"""
 struct Parameter{T<:Number,N} <: DenseSparseArray{T,N}
     universe
     domain::NTuple{N,Symbol}
@@ -74,12 +86,6 @@ struct Mask{N} <: DenseSparseArray{Bool,N}
     description::String
     Mask(GU,domain::Vararg{Symbol,N};description::String = "") where {N}= new{N}(GU,domain,Dict{Any,Bool}(),description)
 end
-
-#mutable struct GamsScalar
-#    scalar::Number
-#    description::String
-#    GamsScalar(scalar::Number;description = "") = new(scalar,description)
-#end
 
 
 """
@@ -116,14 +122,6 @@ function Base.show(io::IO,x::GamsElement)
 end
 
 
-
-#function set_scalar!(s::GamsScalar,scalar::Number)
-#    s.scalar = scalar
-#end
-
-#function scalar(s::GamsScalar)
-#    return s.scalar
-#end
 
 
 

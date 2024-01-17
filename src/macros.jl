@@ -46,6 +46,19 @@ function _plural_macro_code(model, block, macro_sym;entries_to_grab = 1)
     return code
 end
 
+"""
+    @parameter(GU, name, domain, kwargs...)
+
+Create a parameter in the universe. Also puts the name in the local
+namespace.
+
+```
+@parameter(GU, p, (:I,:J), description = "this is p")
+```
+This assumes both I and J are sets already in GU. The description
+is an optional (but recommended) argument. 
+
+"""
 macro parameter(GU, name, domain, kwargs...)
 
     #universe = esc(universe_sym)
@@ -55,13 +68,38 @@ macro parameter(GU, name, domain, kwargs...)
     return :($(esc(name)) = add_parameter($(esc(GU)), $(QuoteNode(name)), $constr_call))
 end
 
+"""
+    @parameters(model, block)
 
+Plural version of `@parameter`. 
+
+```
+@parameters(GU, begin
+    p, (:i,:j), (description = "This is p",)
+    t, :i
+```
+This create two parameters, p and t. p will have a description.
+"""
 macro parameters(model, block)
     return _plural_macro_code(model, block, Symbol("@parameter");entries_to_grab = 2)
 end
 
+"""
+    @set(GU, set_name, description, block)
 
+Macro to create a GamsSet. 
 
+```
+@set(GU,I,"example set",begin
+    element_1, "Description 1"
+    element_2, "Description 2"
+    element_3, "Description 3"
+end)
+```
+
+This will put the set I in the local name space as well.
+
+"""
 macro set(GU, set_name, description, block)
     universe = esc(GU)
     if !(isa(block,Expr) && block.head == :block)
@@ -84,7 +122,17 @@ macro set(GU, set_name, description, block)
     return :($(esc(set_name)) = add_set($(esc(GU)), $(QuoteNode(set_name)), $constr_call))
 end
 
+"""
+    @extract_sets_as_vector(GU, sets...)
 
+Load the sets in the local namespace as vectors.
+
+For example, if I and J are sets in GU, then
+```
+@extract_sets_as_vector(GU, I, J)
+```
+will make both I and J be vectors in the local namespace.
+"""
 macro extract_sets_as_vector(GU, sets...)
     code = quote end
     for s∈sets
@@ -94,6 +142,18 @@ macro extract_sets_as_vector(GU, sets...)
 end
 
 
+"""
+    @extract(GU, vars...)
+
+Load the vars in the local namespace. This will preserve their type.
+
+You can load either sets or parameters by name. If I and J are sets
+and p is a parameter in GU then
+```
+@extract(GU, I, J, p)
+```
+will put each in the local namespace.
+"""
 macro extract(GU, vars...)
     code = quote end
     for s∈vars
@@ -102,12 +162,22 @@ macro extract(GU, vars...)
     return code
 end
 
+"""
+   @alias(GU, base_set, new_sets...)
 
- macro alias(GU, base_set, new_sets...)
+Add aliases of the base set with names given by new_sets.
+
+```
+@alias(GU, I, J, K)
+```
+Then J and K will be deep copies of I in the local namespace and
+added to GU as sets.
+"""
+macro alias(GU, base_set, new_sets...)
     code = quote end
     GU = esc(GU)
     for s∈new_sets
         push!(code.args, :($(esc(s)) = alias($GU, $(QuoteNode(base_set)), $(QuoteNode(s)))))
     end
     return code
- end
+end
