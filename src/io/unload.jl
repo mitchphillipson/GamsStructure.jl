@@ -5,7 +5,7 @@ function unload(S::GamsSet,path,set_name)
     writedlm("$path/$set_name.csv",out,",")
 end
 
-function unload(GU::GamsUniverse,P::GamsParameter,path,parm_name;raw_text=true)
+function unload(GU::GamsUniverse,P::Parameter,path,parm_name;raw_text=true)
 
     if raw_text
         out = Vector{Vector{Any}}()

@@ -15,8 +15,10 @@ export GamsElement
 export GamsSet, alias,@create_set!,@GamsDomainSets,GamsDomainSet,
         load_set,load_set!,@load_sets!,deactivate,activate
 
-export  GamsParameter,@create_parameters,
+export  Parameter,@create_parameters,
         load_parameter,load_parameter!,@load_parameters!,domain
+
+export Mask
 
 export GamsUniverse,add_set,add_parameter,unload,load_universe,
         load_universe!,sets,parameters
@@ -30,10 +32,14 @@ export GamsUniverse,add_set,add_parameter,unload,load_universe,
 
         
 include("structs.jl")
+include("dense_sparse.jl")
+include("parameter.jl")
 include("GamsUniverse.jl")
 include("GamsSet.jl")
-include("GamsParameter.jl")
+#include("GamsParameter.jl")
 #include("GamsScalar.jl")
+
+
 
 include("io/unload.jl")
 include("io/load.jl")

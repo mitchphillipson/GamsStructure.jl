@@ -46,15 +46,33 @@ or a mix of both
 
 P[:set_1,[:e_1]]
 """
-struct GamsParameter{N}
+#struct GamsParameter{N}
+#    universe
+#    sets::Tuple{Vararg{Symbol,N}}
+#    value::Array{Float64,N}
+#    description::String
+#    GamsParameter(GU,sets::Tuple{Vararg{Symbol}},description::String) = new{length(sets)}(GU,sets,zeros(Float64,Tuple(length(GU[e].elements) for e∈sets)),description)
+#    GamsParameter(GU,sets::Tuple{Vararg{Symbol}};description = "") = new{length(sets)}(GU,sets,zeros(Float64,Tuple(length(GU[e].elements) for e∈sets)),description)
+#end
+
+
+abstract type DenseSparseArray{T,N} <: AbstractArray{T,N} end
+
+struct Parameter{T<:Number,N} <: DenseSparseArray{T,N}
     universe
-    sets::Tuple{Vararg{Symbol,N}}
-    value::Array{Float64,N}
+    domain::NTuple{N,Symbol}
+    data::Dict{NTuple{N,Any},T}
     description::String
-    GamsParameter(GU,sets::Tuple{Vararg{Symbol}},description::String) = new{length(sets)}(GU,sets,zeros(Float64,Tuple(length(GU[e].elements) for e∈sets)),description)
-    GamsParameter(GU,sets::Tuple{Vararg{Symbol}};description = "") = new{length(sets)}(GU,sets,zeros(Float64,Tuple(length(GU[e].elements) for e∈sets)),description)
+    Parameter(GU,domain::Tuple{Vararg{Symbol}};description::String="") = new{Float64,length(domain)}(GU,domain,Dict{Any,Float64}(),description)
 end
 
+struct Mask{N} <: DenseSparseArray{Bool,N}
+    universe
+    domain::NTuple{N,Symbol}
+    data::Dict{NTuple{N,Any},Bool}
+    description::String
+    Mask(GU,domain::Vararg{Symbol,N};description::String = "") where {N}= new{N}(GU,domain,Dict{Any,Bool}(),description)
+end
 
 #mutable struct GamsScalar
 #    scalar::Number
@@ -81,7 +99,7 @@ Print a universe to see it's members and their descriptions.
 """
 struct GamsUniverse
     sets::Dict{Symbol,GamsSet}
-    parameters::Dict{Symbol,GamsParameter}
+    parameters::Dict{Symbol,Parameter}
     #scalars::Dict{Symbol,GamsScalar}
     GamsUniverse() = new(Dict(),Dict())
 end

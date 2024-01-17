@@ -3,7 +3,7 @@ function add_set(GU::GamsUniverse,set_name::Symbol,set::GamsSet)
     GU.sets[set_name] = set
 end
 
-function add_parameter(GU::GamsUniverse,parm_name::Symbol,parameter::GamsParameter)
+function add_parameter(GU::GamsUniverse,parm_name::Symbol,parameter::Parameter)
     GU.parameters[parm_name] = parameter
 end
 
@@ -59,6 +59,6 @@ function Base.show(io::IO, GU::GamsUniverse)
 
 end
 
-function Base.setindex!(GU::GamsUniverse,parm::GamsParameter,key::Symbol)
+function Base.setindex!(GU::GamsUniverse,parm::Parameter,key::Symbol)
     GU.parameters[key] = deepcopy(parm)
 end
