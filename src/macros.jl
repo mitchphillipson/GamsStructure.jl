@@ -101,3 +101,13 @@ macro extract(GU, vars...)
     end
     return code
 end
+
+
+ macro alias(GU, base_set, new_sets...)
+    code = quote end
+    GU = esc(GU)
+    for s∈new_sets
+        push!(code.args, :($(esc(s)) = alias($GU, $(QuoteNode(base_set)), $(QuoteNode(s)))))
+    end
+    return code
+ end

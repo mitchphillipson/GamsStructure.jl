@@ -8,15 +8,16 @@ function add_parameter(GU::GamsUniverse,parm_name::Symbol,parameter::Parameter)
 end
 
 
-function alias(GU::GamsUniverse,base_set::Symbol,aliases...)
-    for alias in aliases
-        new_set = deepcopy(GU[base_set])
-        push!(new_set.aliases,base_set)
-        for al in new_set.aliases
-            push!(GU[al].aliases,alias)
-        end
-        add_set(GU,alias,new_set)
+function alias(GU::GamsUniverse,base_set::Symbol,alias::Symbol)
+    #for alias in aliases
+    new_set = deepcopy(GU[base_set])
+    push!(new_set.aliases,base_set)
+    for al in new_set.aliases
+        push!(GU[al].aliases,alias)
     end
+    add_set(GU,alias,new_set)
+    return new_set
+
 end
 
 function sets(GU::GamsUniverse)

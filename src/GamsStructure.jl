@@ -25,7 +25,7 @@ export GamsUniverse,add_set,add_parameter,unload,load_universe,
         load_universe!,sets,parameters
         
 
-export @extract_sets_as_vector,@extract
+export @extract_sets_as_vector,@extract, @alias
 
 
 #GamsScalar,
