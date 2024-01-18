@@ -1,7 +1,7 @@
 name = "GamsStructure"
 uuid = "d6ad7568-1850-470f-916e-e505a496a0a2"
 authors = ["Mitch Phillipson"]
-version = "0.5.1"
+version = "0.6.0"
 
 [deps]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
