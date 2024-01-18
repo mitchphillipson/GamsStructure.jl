@@ -106,13 +106,10 @@ function Base.show(io::IO, x::GamsSet)
     end
 end
 
-function Base.in(x::Symbol,r::GamsSet)
-    return x in [e for e in r]
-end
-
-function Base.in(x::GamsElement,r::GamsSet)
-    return x.name in r
-end
+function Base.in(x::Symbol,r::GamsSet)  
+    return x∈keys(r.index)
+end # = (x in [e for e in r])
+@inline Base.in(x::GamsElement,r::GamsSet) = (x.name in r)
 
 
 function Base.getindex(X::GamsSet,i::Int)
