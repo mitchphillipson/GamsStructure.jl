@@ -20,14 +20,10 @@ description(P::DenseSparseArray) = ""
 ### getindex ###
 ################
 
-function _convert_idx(x::Symbol,GU::GamsUniverse,d::Symbol)
-    @assert (x==d || x∈GU[d]) "Symbol $x is neither a set nor an element of the set $d."
-    if x == d
-        return [[i] for i∈GU[d]]
-    elseif x∈GU[d]
-        return [[x]]
-    end
-end
+
+
+@inline _convert_idx(x::Symbol,GU::GamsUniverse,d::Symbol) = (x==d || x∈GU[d]) ? (x == d ? [[i] for i∈GU[d]] : [[x]]) : throw(DomainError(x, "Symbol $x is neither a set nor an element of the set $d."))
+
 
 function _convert_idx(x::Vector,GU::GamsUniverse,d::Symbol)
     @assert (all(i∈GU[d] for i∈x)) "At least one element of $x is not in set $d"
@@ -62,13 +58,8 @@ we expect output of
 [[:a,:b],[:c,:d],[:e]]
 """
 function partition(v,p)
-    out = []
-    steps = 1
-    for i∈p
-        push!(out,[e for e∈v[steps:steps+i-1]])
-        steps+=i
-    end
-    return out
+    ind = ((sum(p[i] for i∈1:n;init=1),sum(p[i] for i∈1:(n+1);init=1)-1) for n∈0:(length(p)-1))
+    return [[v[i] for i∈a:b] for (a,b)∈ind]
 end
 
 function dimension(x)
@@ -85,13 +76,9 @@ function Base.getindex(P::DenseSparseArray{T,N},idx::Vararg{Any}) where {T,N}
 
     X = Tuple.(Iterators.flatten.(Iterators.product(idx...)))
 
-
     data_dict = data(P)
-    if length(X) == 1
-        return get(data_dict,X[1],0)
-    else
-        return get.(Ref(data_dict),X,0)
-    end
+    length(X) == 1 ? get(data_dict,X[1],0) : get.(Ref(data_dict),X,0)
+
 end
 
 
