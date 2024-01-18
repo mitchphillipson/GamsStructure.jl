@@ -84,7 +84,8 @@ struct Mask{N} <: DenseSparseArray{Bool,N}
     domain::NTuple{N,Symbol}
     data::Dict{NTuple{N,Any},Bool}
     description::String
-    Mask(GU,domain::Vararg{Symbol,N};description::String = "") where {N}= new{N}(GU,domain,Dict{Any,Bool}(),description)
+    Mask(GU,domain::Tuple{Vararg{Symbol,N}};description::String = "") where {N}= new{N}(GU,domain,Dict{Any,Bool}(),description)
+    Mask(GU,domain::Symbol;description::String="") = new{1}(GU,tuple(domain),Dict{Any,Float64}(),description)
 end
 
 
