@@ -49,37 +49,25 @@ function Base.getindex(P::DenseSparseArray{T,N},idx::CartesianIndex{N}) where {T
 end
 
 
-"""
-
-if v = [:a,:b,:c,:d,:e] and p = (2,2,1)
-
-we expect output of 
-
-[[:a,:b],[:c,:d],[:e]]
-"""
-function partition(v,p)
-    ind = ((sum(p[i] for i∈1:n;init=1),sum(p[i] for i∈1:(n+1);init=1)-1) for n∈0:(length(p)-1))
-    return [[v[i] for i∈a:b] for (a,b)∈ind]
-end
-
-function dimension(x)
-    return 1
-end
 
 #Assume input has no masks
 function Base.getindex(P::DenseSparseArray{T,N},idx::Vararg{Any,N}) where {T,N}
-    
+   return _getindex(P,idx...)
+end
+
+
+function _getindex(P::DenseSparseArray{T,N},idx::Vararg{Any,N}) where {T,N}
     GU = universe(P)
     d = domain(P)
-    idx = map((x,d) -> _convert_idx(x,GU,d), idx, d)
 
-    idx = collect(Iterators.product(idx...))
-    idx = dropdims(idx,dims=tuple(findall(size(idx).==1)...))
+    idx = map((x,d) -> _convert_idx(x,GU,d), idx, d) |>
+        x -> collect(Iterators.product(x...)) |>
+        x -> dropdims(x,dims=tuple(findall(size(x).==1)...))
 
     data_dict = data(P)
     length(idx) == 1 ? get(data_dict,idx[1],zero(T)) : get.(Ref(data_dict),idx,zero(T))
-end
 
+end
 
 ################
 ### setindex ###
