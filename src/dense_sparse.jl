@@ -22,7 +22,7 @@ description(P::DenseSparseArray) = ""
 
 
 
-@inline _convert_idx(x::Symbol,GU::GamsUniverse,d::Symbol) = (x==d || x∈GU[d].aliases || x∈GU[d]) ? (x == d || x∈GU[d].aliases ? [[i] for i∈GU[d]] : [[x]]) : throw(DomainError(x, "Symbol $x is neither a set nor an element of the set $d."))
+@inline _convert_idx(x::Symbol,GU::GamsUniverse,d::Symbol) = (x==d || x∈GU[d]) ? (x == d ? [[i] for i∈GU[d]] : [[x]]) : throw(DomainError(x, "Symbol $x is neither a set nor an element of the set $d."))
 
 
 function _convert_idx(x::Vector,GU::GamsUniverse,d::Symbol)
