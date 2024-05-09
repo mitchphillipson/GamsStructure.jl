@@ -48,7 +48,7 @@ function load_universe(path::String;to_load = [],nGU::GamsUniverse = GamsUnivers
             if to_load == [] || name ∈ to_load
                 sets,desc,cols = parm
                 sets = Tuple([Symbol(e) for e in sets])
-                add_parameter(nGU,name,GamsParameter(nGU,sets,desc))
+                add_parameter(nGU,name,Parameter(nGU,sets;description = desc))
                 nGU[name][sets...] = read(parameters[key])
             end
         end

@@ -127,7 +127,7 @@ end
 
 Load the sets in the local namespace as vectors.
 
-For example, if I and J are sets in GU, then
+For example, if I and j are sets in GU, then
 ```
 @extract_sets_as_vector(GU, I, J)
 ```
@@ -136,7 +136,12 @@ will make both I and J be vectors in the local namespace.
 macro extract_sets_as_vector(GU, sets...)
     code = quote end
     for s∈sets
-        push!(code.args, :($(esc(s)) = [e for e∈$GU[$(QuoteNode(s))]]))
+        if s isa Expr
+            tmp = s.args
+            push!(code.args, :($(esc(tmp[3])) = [e for e∈$(esc(GU))[$(QuoteNode(tmp[2]))]]))
+        else
+            push!(code.args, :($(esc(s)) = [e for e∈$(esc(GU))[$(QuoteNode(s))]]))
+        end
     end
     return code
 end
@@ -147,17 +152,22 @@ end
 
 Load the vars in the local namespace. This will preserve their type.
 
-You can load either sets or parameters by name. If I and J are sets
+You can load either sets or parameters by name. If I and j are sets
 and p is a parameter in GU then
 ```
-@extract(GU, I, J, p)
+@extract(GU, I, j=>J, p)
 ```
-will put each in the local namespace.
+will put each in the local namespace and J = GU[:j]
 """
 macro extract(GU, vars...)
     code = quote end
     for s∈vars
-        push!(code.args, :($(esc(s)) = $(esc(GU))[$(QuoteNode(s))]))
+        if s isa Expr
+            tmp = s.args
+            push!(code.args, :($(esc(tmp[3])) = $(esc(GU))[$(QuoteNode(tmp[2]))]))
+        else
+            push!(code.args, :($(esc(s)) = $(esc(GU))[$(QuoteNode(s))]))
+        end
     end
     return code
 end

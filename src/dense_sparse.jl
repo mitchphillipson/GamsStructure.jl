@@ -22,7 +22,9 @@ description(P::DenseSparseArray) = ""
 
 
 
-@inline _convert_idx(x::Symbol,GU::GamsUniverse,d::Symbol) = (x==d || x∈GU[d].aliases || x∈GU[d]) ? (x == d || x∈GU[d].aliases ? [i for i∈GU[d]] : [x]) : throw(DomainError(x, "Symbol $x is neither a set nor an element of the set $d."))
+#@inline _convert_idx(x::Symbol,GU::GamsUniverse,d::Symbol) = (x==d || x∈GU[d].aliases || x∈GU[d]) ? (x == d || x∈GU[d].aliases ? [i for i∈GU[d]] : [x]) : throw(DomainError(x, "Symbol $x is neither a set nor an element of the set $d."))
+@inline _convert_idx(x::Symbol,GU::GamsUniverse,d::Symbol) = x∈GU[d] ? [x] : [i for i∈GU[d]]
+
 
 
 function _convert_idx(x::Vector,GU::GamsUniverse,d::Symbol)
@@ -77,22 +79,24 @@ end
 function Base.setindex!(P::DenseSparseArray{T,N}, value, idx::Vararg{Any,N}) where {T,N}
     #domain_match = partition(domain(P),dimension.(idx))
     #@assert sum(length.(domain_match)) == dimension(P) "Not enough inputs, or something. Get a better error message"
-    
-    GU = universe(P)
-    d = domain(P)
-    idx = map((x,d) -> _convert_idx(x,GU,d), idx, d)
-    
-    idx = collect(Iterators.product(idx...))
 
-    if length(idx) == 1
-        _setindex!(P,value,idx[1])
-    else
-        _setindex!.(Ref(P), value, idx)
-    end
+    _setindex!(P,value, idx...)
 
 end
 
-function _setindex!(P::DenseSparseArray{T,N}, value, idx) where {T,N}
+function _setindex!(P::DenseSparseArray{T,N}, value, idx::Vararg{Any,N}) where {T,N}
+
+    GU = universe(P)
+    d = domain(P)
+
+    idx = map((x,d) -> _convert_idx(x,GU,d), idx, d) |>
+        x -> collect(Iterators.product(x...)) |>
+        x -> dropdims(x,dims=tuple(findall(size(x).==1)...))
+
+    length(idx) == 1 ? _setindexvalue!(P,value,idx[1]) :  _setindexvalue!.(Ref(P), value, idx)
+end
+
+function _setindexvalue!(P::DenseSparseArray{T,N}, value, idx) where {T,N}
     d = data(P)
 
     if value == zero(T)

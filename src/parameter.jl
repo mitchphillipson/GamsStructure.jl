@@ -34,14 +34,13 @@ function dimension(x)
     return 1
 end
 
-function Base.getindex(P::Parameter{T,N},idx::Vararg{Any}) where {T,N}
-    if any(isa(x,Mask) for x∈idx)
-        _getindex_mask(P,idx...)
-    else
-        
-        GamsStructure._getindex(P,idx...)
-    end
-end
+#function Base.getindex(P::Parameter{T,N},idx::Vararg{Any}) where {T,N}
+#    if any(isa(x,Mask) for x∈idx)
+#        _getindex_mask(P,idx...)
+#    else
+#        GamsStructure._getindex(P,idx...)
+#    end
+#end
 
 """
     Code from TupleTools.jl package
@@ -70,6 +69,33 @@ function _getindex_mask(P::Parameter{T,N},idx...) where {T,N}
 
 end
 
+
+function Base.setindex!(P::Parameter{T,N},value, idx::Vararg{Any}) where {T,N}
+    if any(isa(x,Mask) for x∈idx)
+        _setindex_mask!(P,value,idx...)
+    else
+        _setindex!(P,value,idx...)
+    end
+end
+
+function _setindex_mask!(P::Parameter{T,N},value,idx...) where {T,N}
+    
+    GU = GamsStructure.universe(P)
+    d = GamsStructure.domain(P)
+
+    domain_match = GamsStructure.partition(d,GamsStructure.dimension.(idx))
+
+    idx = map((x,d) -> GamsStructure._convert_idx(x,GU,d...), idx, domain_match) |>
+        x -> GamsStructure.collect(Iterators.product(x...)) |>
+        x -> GamsStructure.dropdims(x,dims=tuple(findall(size(x).==1)...)) |>
+        x -> flatten.(x)
+
+
+    #return idx
+    data_dict = GamsStructure.data(P)
+    length(idx) == 1 ? _setindexvalue!(P,value,idx[1]) :  _setindexvalue!.(Ref(P), value, idx)
+
+end
 
 
 
