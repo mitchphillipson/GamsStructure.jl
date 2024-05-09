@@ -17,6 +17,61 @@ function _convert_idx(x::Mask,GU::GamsUniverse,d::Vararg{Symbol})
     return keys(data(x))
 end
 
+"""
+
+if v = [:a,:b,:c,:d,:e] and p = (2,2,1)
+
+we expect output of 
+
+[[:a,:b],[:c,:d],[:e]]
+"""
+function partition(v,p)
+    ind = ((sum(p[i] for i∈1:n;init=1),sum(p[i] for i∈1:(n+1);init=1)-1) for n∈0:(length(p)-1))
+    return [[v[i] for i∈a:b] for (a,b)∈ind]
+end
+
+function dimension(x)
+    return 1
+end
+
+function Base.getindex(P::Parameter{T,N},idx::Vararg{Any}) where {T,N}
+    if any(isa(x,Mask) for x∈idx)
+        _getindex_mask(P,idx...)
+    else
+        
+        GamsStructure._getindex(P,idx...)
+    end
+end
+
+"""
+    Code from TupleTools.jl package
+"""
+flatten(x::Any) = (x,)
+flatten(t::Tuple{}) = ()
+flatten(t::Tuple) = (flatten(t[1])..., flatten(Base.tail(t))...)
+flatten(x, r...) = (flatten(x)..., flatten(r)...)
+
+function _getindex_mask(P::Parameter{T,N},idx...) where {T,N}
+    
+    GU = GamsStructure.universe(P)
+    d = GamsStructure.domain(P)
+
+    domain_match = GamsStructure.partition(d,GamsStructure.dimension.(idx))
+
+    idx = map((x,d) -> GamsStructure._convert_idx(x,GU,d...), idx, domain_match) |>
+        x -> GamsStructure.collect(Iterators.product(x...)) |>
+        x -> GamsStructure.dropdims(x,dims=tuple(findall(size(x).==1)...)) |>
+        x -> flatten.(x)
+
+
+    #return idx
+    data_dict = GamsStructure.data(P)
+    length(idx) == 1 ? get(data_dict,idx[1],zero(T)) : get.(Ref(data_dict),idx,zero(T))
+
+end
+
+
+
 
 """ 
     @create_parameters(GU,block)
